@@ -1,0 +1,30 @@
+src/
+├── components/
+│   ├── common/
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   └── Navbar.jsx
+│   ├── auth/
+│   │   ├── LoginForm.jsx
+│   │   └── RegisterForm.jsx
+│   ├── courses/
+│   │   ├── CourseCard.jsx
+│   │   └── LessonPlayer.jsx
+│   └── admin/
+│       ├── UsersList.jsx
+│       └── CourseManager.jsx
+├── context/
+│   └── AuthContext.jsx
+├── pages/
+│   ├── auth/
+│   │   ├── Login.jsx
+│   │   └── Register.jsx
+│   ├── courses/
+│   │   ├── CourseList.jsx
+│   │   └── LessonView.jsx
+│   └── admin/
+│       └── Dashboard.jsx
+├── services/
+│   ├── api.js
+│   └── auth.js
+└── App.jsx 

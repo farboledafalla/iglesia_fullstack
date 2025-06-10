@@ -154,6 +154,57 @@ const moduloController = {
          res.status(500).json({ msg: 'Error al eliminar el módulo' });
       }
    },
+
+   // Obtener módulos con sus lecciones
+   getModulosConLecciones: async (req, res) => {
+      try {
+         const query = `
+            SELECT 
+               m.modulo_id,
+               m.nombre as modulo_titulo,
+               m.descripcion as modulo_descripcion,
+               m.orden,
+               l.leccion_id,
+               l.titulo_leccion as leccion_titulo,
+               l.contenido as leccion_descripcion
+            FROM modulos m
+            LEFT JOIN lecciones l ON m.modulo_id = l.modulo_id
+            ORDER BY m.orden, l.orden
+         `;
+
+         const rows = await db.query(query);
+
+         // Restructurar los datos para el acordeón
+         const modulos = rows.reduce((acc, row) => {
+            if (!acc[row.modulo_id]) {
+               acc[row.modulo_id] = {
+                  modulo_id: row.modulo_id,
+                  titulo: row.modulo_titulo,
+                  descripcion: row.modulo_descripcion,
+                  lecciones: [],
+               };
+            }
+
+            if (row.leccion_id) {
+               acc[row.modulo_id].lecciones.push({
+                  leccion_id: row.leccion_id,
+                  titulo: row.leccion_titulo,
+                  descripcion: row.leccion_descripcion,
+               });
+            }
+
+            return acc;
+         }, {});
+
+         res.json(Object.values(modulos));
+      } catch (error) {
+         console.error('Error al obtener módulos con lecciones:', error);
+         res.status(500).json({
+            msg: 'Error al obtener módulos',
+            error: error.message,
+         });
+      }
+   },
 };
 
 module.exports = moduloController;

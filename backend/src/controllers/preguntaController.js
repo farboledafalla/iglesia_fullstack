@@ -1,9 +1,11 @@
 const db = require('../database');
 
 const preguntaController = {
-   // Obtener preguntas agrupadas por lección
+   // Obtener preguntas por lección
    getPreguntasPorLeccion: async (req, res) => {
       try {
+         const { leccionId } = req.params;
+
          const query = `
             SELECT 
                p.pregunta_id,
@@ -18,14 +20,23 @@ const preguntaController = {
             FROM preguntas p
             INNER JOIN lecciones l ON p.leccion_id = l.leccion_id
             INNER JOIN modulos m ON l.modulo_id = m.modulo_id
-            ORDER BY m.nombre, l.orden, p.orden
+            WHERE p.leccion_id = ?
+            ORDER BY p.orden
          `;
 
-         const preguntas = await db.query(query);
+         const preguntas = await db.query(query, [leccionId]);
+
+         if (!preguntas.length) {
+            return res.json([]);
+         }
+
          res.json(preguntas);
       } catch (error) {
-         console.error(error);
-         res.status(500).json({ msg: 'Error al obtener preguntas' });
+         console.error('Error al obtener preguntas por lección:', error);
+         res.status(500).json({
+            msg: 'Error al obtener preguntas',
+            error: error.message,
+         });
       }
    },
 

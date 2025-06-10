@@ -1,8 +1,14 @@
+// RegisterForm.jsx: este componente se encarga de renderizar el formulario de registro de usuario y enviar los datos al backend para registrar al usuario
+
 import React, { useState, useEffect } from 'react';
+// Importar el hook useNavigate para redirigir a otra página
 import { useNavigate } from 'react-router-dom';
+// Importar el contexto de autenticación
 import { useAuth } from '../../context/AuthContext';
 
+// Definición del componente RegisterForm
 const RegisterForm = () => {
+   // Estado para el formulario
    const [formData, setFormData] = useState({
       nombre: '',
       email: '',
@@ -10,11 +16,17 @@ const RegisterForm = () => {
       telefono: '',
       pais_id: '',
    });
+   // Estado para el país seleccionado
    const [paises, setPaises] = useState([]);
+   // Estado para el error
    const [error, setError] = useState('');
+
+   // Obtener la función login del contexto de autenticación
    const { login } = useAuth();
+   // Obtener la función navigate del hook useNavigate
    const navigate = useNavigate();
 
+   // Cargar países al iniciar el componente, esto se hace mediante una petición GET a la API en el endpont (/api/paises)
    useEffect(() => {
       const fetchPaises = async () => {
          try {
@@ -26,9 +38,11 @@ const RegisterForm = () => {
          }
       };
 
+      // Llamar a la funci��n fetchPaises
       fetchPaises();
    }, []);
 
+   // Función para manejar el cambio en el formulario en los diferentes campos del formulario
    const handleChange = (e) => {
       setFormData({
          ...formData,
@@ -36,6 +50,7 @@ const RegisterForm = () => {
       });
    };
 
+   // Función para manejar el envío del formulario, cuando se envía el formulario, se envía una petición POST a la API en el endpoint (/api/auth/register) con los datos del formulario
    const handleSubmit = async (e) => {
       e.preventDefault();
       setError('');
@@ -52,6 +67,7 @@ const RegisterForm = () => {
             }
          );
 
+         // 
          const data = await response.json();
 
          if (!response.ok) {

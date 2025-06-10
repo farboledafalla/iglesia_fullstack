@@ -1,5 +1,7 @@
+// Register.jsx: este componente se encarga de mostrar el formulario de registro de usuarios
 import React from 'react';
 import { Link } from 'react-router-dom';
+// importa el componente RegisterForm que tiene el formulario de registro de usuarios
 import RegisterForm from '../../components/auth/RegisterForm';
 
 const Register = () => {

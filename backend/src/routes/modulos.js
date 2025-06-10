@@ -21,4 +21,7 @@ router.put('/:id/toggle-estado', moduloController.toggleEstado);
 // Eliminar un módulo
 router.delete('/:id', moduloController.deleteModulo);
 
+// Obtener módulos con sus lecciones
+router.get('/con-lecciones', moduloController.getModulosConLecciones);
+
 module.exports = router;

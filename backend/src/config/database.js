@@ -8,6 +8,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 //Se muestra en consola las variables de entorno para verificar si están correctas, con esto hacemos un debug
+console.log('\n\n------------------------------------------------');
 console.log('Process ENV:', {
    DB_HOST: process.env.DB_HOST,
    DB_USER: process.env.DB_USER,
@@ -29,6 +30,7 @@ const dbConfig = {
 };
 
 // Mostrar en consola la configuración de la base de datos
+console.log('\n\n------------------------------------------------');
 console.log('DB Config:', {
    ...dbConfig,
    //Esta línea es para ocultar la contraseña en la consola
@@ -59,6 +61,7 @@ pool.getConnection((err, connection) => {
 
    // Si hay una conexión, mostrar un mensaje en consola
    if (connection) {
+      console.log('\n\n------------------------------------------------');
       console.log('Conectado a la base de datos correctamente!');
       connection.release();
    }

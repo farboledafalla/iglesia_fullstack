@@ -41,14 +41,32 @@ const Usuarios = () => {
    };
 
    const handleSubmit = async (data) => {
-      const updatedUsuarios = selectedUsuario
-         ? usuarios.map((u) =>
-              u.usuario_id === selectedUsuario.usuario_id
-                 ? { ...u, ...data }
-                 : u
-           )
-         : [...usuarios, data];
-      setUsuarios(updatedUsuarios);
+      // Normalización defensiva: el backend puede devolver { msg, user }
+      const user = data?.user ?? data;
+
+      // Si no recibimos un usuario con id, reconsultamos la lista como fallback
+      if (!user || !user.usuario_id) {
+         await fetchUsuarios();
+         handleCloseModal();
+         return;
+      }
+
+      if (selectedUsuario) {
+         // Actualizar usuario existente en la lista
+         const updatedUsuarios = usuarios.map((u) =>
+            u.usuario_id === selectedUsuario.usuario_id ? { ...u, ...user } : u
+         );
+         setUsuarios(updatedUsuarios);
+      } else {
+         // Evitar duplicados: si ya existe, actualizamos en lugar de añadir
+         const exists = usuarios.some((u) => u.usuario_id === user.usuario_id);
+         if (exists) {
+            setUsuarios(usuarios.map((u) => (u.usuario_id === user.usuario_id ? { ...u, ...user } : u)));
+         } else {
+            setUsuarios([...usuarios, user]);
+         }
+      }
+
       handleCloseModal();
    };
 
@@ -127,15 +145,15 @@ const Usuarios = () => {
                               </th>
                               <th
                                  scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Estado
                               </th>
                               <th
                                  scope='col'
-                                 className='relative py-3.5 pl-3 pr-4 sm:pr-6'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 <span className='sr-only'>Acciones</span>
+                                 Acciones
                               </th>
                            </tr>
                         </thead>
@@ -151,7 +169,7 @@ const Usuarios = () => {
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {usuario.nombre_rol}
                                  </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <span
                                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                                           usuario.estado === 'ACTIVO'
@@ -162,7 +180,7 @@ const Usuarios = () => {
                                        {usuario.estado}
                                     </span>
                                  </td>
-                                 <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <button
                                        onClick={() => handleOpenModal(usuario)}
                                        className='text-indigo-600 hover:text-indigo-900 mr-4'

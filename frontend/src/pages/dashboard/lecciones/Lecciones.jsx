@@ -135,13 +135,13 @@ const Lecciones = () => {
                               </th>
                               <th
                                  scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Estado
                               </th>
                               <th
                                  scope='col'
-                                 className='relative py-3.5 pl-3 pr-4 sm:pr-6'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Acciones
                               </th>
@@ -159,7 +159,7 @@ const Lecciones = () => {
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {leccion.nombre_instructor}
                                  </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <span
                                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                                           leccion.estado === 'ACTIVO'
@@ -176,7 +176,7 @@ const Lecciones = () => {
                                           setSelectedLeccion(leccion);
                                           setIsModalOpen(true);
                                        }}
-                                       className='text-indigo-600 hover:text-indigo-900 mr-4'
+                                       className='text-indigo-600 hover:text-indigo-900 mr-4 w-16'
                                     >
                                        Editar
                                     </button>
@@ -195,7 +195,9 @@ const Lecciones = () => {
                                           : 'Activar'}
                                     </button>
                                     <button
-                                       onClick={() => handleDeleteClick(leccion)}
+                                       onClick={() =>
+                                          handleDeleteClick(leccion)
+                                       }
                                        className='text-red-600 hover:text-red-900'
                                     >
                                        Eliminar
@@ -239,7 +241,7 @@ const Lecciones = () => {
                setLeccionToDelete(null);
             }}
             onConfirm={handleConfirmDelete}
-            title="Confirmar eliminación"
+            title='Confirmar eliminación'
             message={`¿Estás seguro de que deseas eliminar la lección ${
                leccionToDelete?.titulo_leccion || ''
             }? Esta acción no se puede deshacer.`}

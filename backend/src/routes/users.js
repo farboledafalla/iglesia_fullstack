@@ -15,6 +15,9 @@ const {
 // Obtener todos los usuarios (solo admin)
 router.get('/', [auth, checkRole(['admin'])], getUsers);
 
+// Crear nuevo usuario (solo admin)
+router.post('/', [auth, checkRole(['admin'])], userController.createUser);
+
 // Obtener usuario por ID
 router.get('/:id', auth, getUserById);
 

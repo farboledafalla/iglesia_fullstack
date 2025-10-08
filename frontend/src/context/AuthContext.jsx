@@ -4,12 +4,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 // Crear el contexto
 const AuthContext = createContext();
 
-// Proveedor de autenticación
+// Proveedor de autenticación, children es todo lo que se renderize desde App.jsx
 export const AuthProvider = ({ children }) => {
    // Estado para el usuario, el token y el loading
    const [user, setUser] = useState(null);
    const [token, setToken] = useState(null);
-   // Estado para el loading y se establece en true al iniciar para indicador de carga
+   // Estado para el loading y se establece en true al iniciar como indicador de carga
    const [loading, setLoading] = useState(true);
 
    // Cargar datos de autenticación al iniciar
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
    // Función para manejar el login, recibe email y password desde el componente Login para luego enviar al backend
    const login = async (email, password) => {
       try {
-         // Petición tipo POST a la API de autenticación enviando el email y password al backend puntualmente a la ruta (/api/auth/login)
+         // Petición tipo POST a la API de autenticación
          const response = await fetch('http://localhost:3002/api/auth/login', {
             method: 'POST',
             headers: {
@@ -39,26 +39,29 @@ export const AuthProvider = ({ children }) => {
             body: JSON.stringify({ email, password }),
          });
 
-         // Si la respuesta no es ok, lanzar un error
+         // Parsear la respuesta una sola vez
+         const data = await response.json();
+         console.log('Mensaje de la API: ', data.msg, data.email);
+
+         // Si la respuesta NO es ok, devolver la data al llamador para que muestre el mensaje
          if (!response.ok) {
-            throw new Error('Error en la autenticación');
+            // Retornamos un objeto con campo ok=false para facilitar el manejo en LoginForm
+            return { ok: false, ...data };
          }
 
-         // Obtener datos de respuesta desde el backend
-         const data = await response.json();
-
-         // Guardar en localStorage del navegador
+         // Respuesta ok: guardar token/usuario y actualizar estado
+         console.log('Data retornada desde el backend: ', data);
+         // Guardar en localStorage y actualizar estado
          localStorage.setItem('token', data.token);
          localStorage.setItem('user', JSON.stringify(data.user));
-
-         // Actualizar estado con los datos recibidos desde el backend
          setToken(data.token);
          setUser(data.user);
 
-         // Devolver datos de respuesta, se retornan estos datos a (Login.jsx) que es desde donde se invoca (AuthContext.jsx) para mostrar un mensaje de éxito o error
-         return data;
+         // Retornar la data incluyendo ok=true
+         return { ok: true, ...data };
       } catch (error) {
-         console.error('Error en login:', error);
+         console.error('Error en el login:', error);
+         // Lanzar para que el componente que llamó pueda capturar errores de red u otros
          throw error;
       }
    };

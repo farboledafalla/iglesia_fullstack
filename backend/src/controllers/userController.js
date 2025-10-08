@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const pool = require('../config/database');
+const bcrypt = require('bcryptjs');
 
 const userController = {
    // Obtener todos los usuarios
@@ -48,7 +49,7 @@ const userController = {
       try {
          const [result] = await pool.query(
             'UPDATE usuarios SET nombre = ?, email = ?, pais_id = ? WHERE usuario_id = ?',
-            [nombre, email, pais_id, req.params.usuario_id]
+            [nombre, email, pais_id, req.params.id]
          );
 
          if (result.affectedRows === 0) {
@@ -58,6 +59,82 @@ const userController = {
          res.json({ msg: 'Usuario actualizado correctamente' });
       } catch (err) {
          console.error(err.message);
+         res.status(500).send('Error del servidor');
+      }
+   },
+
+   // Crear usuario
+   createUser: async (req, res) => {
+      const { nombre, email, password, pais_id, rol_id } = req.body;
+
+      try {
+         // Validar email único
+         const [existing] = await pool.query(
+            'SELECT usuario_id FROM usuarios WHERE email = ?',
+            [email]
+         );
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Consulta si existe ese email:',
+            'SELECT usuario_id FROM usuarios WHERE email =',
+            email
+         );
+
+         if (existing.length > 0) {
+            // Logs para depuración
+            console.log('\n\n------------------------------------------------');
+            console.log('El email ya está registrado:');
+            return res.status(400).json({ msg: 'El email ya está registrado' });
+         }
+
+         // Hashear la contraseña
+         const salt = await bcrypt.genSalt(10);
+         const password_hash = await bcrypt.hash(password || '123456', salt);
+
+         // Insertar usuario
+         const [result] = await pool.query(
+            'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
+            [nombre, email, password_hash, pais_id, rol_id]
+         );
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
+            nombre,
+            email,
+            password_hash,
+            pais_id,
+            rol_id
+         );
+
+         // Obtener el usuario creado con el nombre del rol y país para que el frontend
+         // pueda renderizar inmediatamente los campos usados en la lista
+         const [rows] = await pool.query(
+            'SELECT u.usuario_id, u.nombre, u.email, u.pais_id, u.rol_id, u.estado, r.nombre_rol, p.nombre_pais, u.fecha_registro ' +
+               'FROM usuarios u ' +
+               'JOIN roles r ON u.rol_id = r.rol_id ' +
+               'JOIN paises p ON u.pais_id = p.pais_id ' +
+               'WHERE u.usuario_id = ?',
+            [result.insertId]
+         );
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'SELECT u.usuario_id, u.nombre, u.email, u.pais_id, u.rol_id, u.estado, r.nombre_rol, p.nombre_pais, u.fecha_registro ' +
+               'FROM usuarios u ' +
+               'JOIN roles r ON u.rol_id = r.rol_id ' +
+               'JOIN paises p ON u.pais_id = p.pais_id ' +
+               'WHERE u.usuario_id =',
+            result.insertId
+         );
+
+         res.status(201).json({ msg: 'Usuario creado', user: rows[0] });
+      } catch (err) {
+         console.error('Error createUser:', err.message);
          res.status(500).send('Error del servidor');
       }
    },

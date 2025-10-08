@@ -1,3 +1,5 @@
+//paises.js: este script definirá las rutas y el controlador para manejar las solicitudes relacionadas con los países.
+
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
@@ -18,6 +20,9 @@ router.get('/', async (req, res) => {
       const [paises] = await pool.query(
          'SELECT * FROM paises ORDER BY nombre_pais'
       );
+
+      console.log('\n\n------------------------------------------------');
+      console.log('Consulta países: \nSELECT * FROM paises ORDER BY nombre_pais');
       res.json(paises);
    } catch (err) {
       console.error(err.message);

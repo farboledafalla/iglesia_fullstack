@@ -1,6 +1,12 @@
+// Modal.jsx: este script define el componente Modal que se utiliza para mostrar formularios de creación y edición de usuarios.
+
 import React from 'react';
 import { XMarkIcon as XIcon } from '@heroicons/react/24/outline';
 
+//isOpen: un booleano que indica si el modal está abierto o cerrado.
+//onClose: una función que se llama cuando se cierra el modal.
+//title: el título del modal. Puede ser Editar Usuario o Crear Usuario.
+//children: los componentes hijos que se renderizan dentro del modal. En este caso es el componente AlumnoForm.jsx.
 const Modal = ({ isOpen, onClose, title, children }) => {
    if (!isOpen) return null;
 

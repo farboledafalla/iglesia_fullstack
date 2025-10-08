@@ -87,7 +87,9 @@ const UsuarioForm = ({ usuario, onSubmit, onCancel }) => {
          }
 
          const data = await response.json();
-         onSubmit(data);
+         // El backend devuelve { msg, user } al crear un usuario.
+         // Pasamos al padre el objeto user cuando exista, o la data completa en caso contrario.
+         onSubmit(data.user ?? data);
       } catch (err) {
          setError(err.message);
       }

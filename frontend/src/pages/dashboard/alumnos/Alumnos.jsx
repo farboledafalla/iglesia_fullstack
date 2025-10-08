@@ -25,6 +25,14 @@ const Alumnos = () => {
             },
          });
          const data = await response.json();
+
+         // Mostrar los datos en la consola del navegador para debbuging
+         console.log('alumnos:', data);
+         console.log('data[0]:', data[0]);
+         console.log('data[0][0]:', data[0][0]);
+         console.log("data[0][0]['alumno_id']:", data[0][0]['alumno_id']);
+
+         // Actualizar el estado con los datos de los alumnos retornados por la API
          setAlumnos(data[0]);
       } catch (error) {
          console.error('Error al cargar alumnos:', error);
@@ -125,9 +133,162 @@ const Alumnos = () => {
 
          <div className='mt-8 flex flex-col'>
             <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
-               <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
-                  <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg'>
-                     <table className='min-w-full divide-y divide-gray-300'>
+               <div className='inline-block min-w-full py-2 align-middle md:px-6 px-8'>
+                  <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg'>
+                     {/* Mostrar en pantallas <= lg(768px) */}
+                     <table className='min-w-full divide-y divide-gray-300 md:hidden'>
+                        <thead className='bg-gray-50'>
+                           <tr>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 Nombre
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Estado
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Acciones
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody className='divide-y divide-gray-200 bg-white'>
+                           {alumnos.map((alumno) => (
+                              <tr key={alumno.alumno_id}>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.nombre}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
+                                    <span
+                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'bg-green-100 text-green-800'
+                                             : 'bg-orange-200 text-red-800'
+                                       }`}
+                                    >
+                                       {alumno.estado}
+                                    </span>
+                                 </td>
+                                 <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-col justify-center'>
+                                    <button
+                                       onClick={() => {
+                                          setSelectedAlumno(alumno);
+                                          setIsModalOpen(true);
+                                       }}
+                                       className='text-indigo-600 hover:text-indigo-900 w-16'
+                                    >
+                                       Editar
+                                    </button>
+                                    <button
+                                       onClick={() =>
+                                          handleToggleEstado(alumno)
+                                       }
+                                       className={`${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'text-orange-400 hover:text-red-900'
+                                             : 'text-green-600 hover:text-green-900'
+                                       } w-16`}
+                                    >
+                                       {alumno.estado === 'ACTIVO'
+                                          ? 'Desactivar'
+                                          : 'Activar'}
+                                    </button>
+                                    <button
+                                       onClick={() => handleDeleteClick(alumno)}
+                                       className='text-red-600 hover:text-red-900 w-16'
+                                    >
+                                       Eliminar
+                                    </button>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                     {/* Mostrar en pantallas >= md(768px) y <= lg(1024px), acciones en columna */}
+                     <table className='hidden md:table min-w-full divide-y divide-gray-300 lg:hidden'>
+                        <thead className='bg-gray-50'>
+                           <tr>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 Nombre
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Estado
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Acciones
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody className='divide-y divide-gray-200 bg-white'>
+                           {alumnos.map((alumno) => (
+                              <tr key={alumno.alumno_id}>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.nombre}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
+                                    <span
+                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'bg-green-100 text-green-800'
+                                             : 'bg-orange-200 text-red-800'
+                                       }`}
+                                    >
+                                       {alumno.estado}
+                                    </span>
+                                 </td>
+                                 <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-col justify-center'>
+                                    <button
+                                       onClick={() => {
+                                          setSelectedAlumno(alumno);
+                                          setIsModalOpen(true);
+                                       }}
+                                       className='text-indigo-600 hover:text-indigo-900 w-16'
+                                    >
+                                       Editar
+                                    </button>
+                                    <button
+                                       onClick={() =>
+                                          handleToggleEstado(alumno)
+                                       }
+                                       className={`${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'text-orange-400 hover:text-red-900'
+                                             : 'text-green-600 hover:text-green-900'
+                                       } w-16`}
+                                    >
+                                       {alumno.estado === 'ACTIVO'
+                                          ? 'Desactivar'
+                                          : 'Activar'}
+                                    </button>
+                                    <button
+                                       onClick={() => handleDeleteClick(alumno)}
+                                       className='text-red-600 hover:text-red-900 w-16'
+                                    >
+                                       Eliminar
+                                    </button>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                     {/* Mostrar en pantallas >= lg(1024px) <= xl(1280px), acciones en linea */}
+                     <table className='hidden lg:table min-w-full divide-y divide-gray-300 xl:hidden'>
                         <thead className='bg-gray-50'>
                            <tr>
                               <th
@@ -144,25 +305,13 @@ const Alumnos = () => {
                               </th>
                               <th
                                  scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
-                              >
-                                 Teléfono
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
-                              >
-                                 País
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Estado
                               </th>
                               <th
                                  scope='col'
-                                 className='relative py-3.5 pl-3 pr-4 sm:pr-6'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Acciones
                               </th>
@@ -177,13 +326,7 @@ const Alumnos = () => {
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.email}
                                  </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
-                                    {alumno.telefono}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
-                                    {alumno.nombre_pais}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <span
                                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                                           alumno.estado === 'ACTIVO'
@@ -212,7 +355,110 @@ const Alumnos = () => {
                                           alumno.estado === 'ACTIVO'
                                              ? 'text-orange-400 hover:text-red-900'
                                              : 'text-green-600 hover:text-green-900'
-                                       } mr-4`}
+                                       } mr-4 w-16`}
+                                    >
+                                       {alumno.estado === 'ACTIVO'
+                                          ? 'Desactivar'
+                                          : 'Activar'}
+                                    </button>
+                                    <button
+                                       onClick={() => handleDeleteClick(alumno)}
+                                       className='text-red-600 hover:text-red-900'
+                                    >
+                                       Eliminar
+                                    </button>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                     {/* Mostrar en pantallas >= xl(1280px) */}
+                     <table className='hidden xl:table min-w-full divide-y divide-gray-300'>
+                        <thead className='bg-gray-50'>
+                           <tr>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 Nombre
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 Email
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 Teléfono
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
+                                 País
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Estado
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
+                              >
+                                 Acciones
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody className='divide-y divide-gray-200 bg-white'>
+                           {alumnos.map((alumno) => (
+                              <tr key={alumno.alumno_id}>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.nombre}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.email}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.telefono}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.nombre_pais}
+                                 </td>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
+                                    <span
+                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'bg-green-100 text-green-800'
+                                             : 'bg-orange-200 text-red-800'
+                                       }`}
+                                    >
+                                       {alumno.estado}
+                                    </span>
+                                 </td>
+                                 <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-row justify-center'>
+                                    <button
+                                       onClick={() => {
+                                          setSelectedAlumno(alumno);
+                                          setIsModalOpen(true);
+                                       }}
+                                       className='text-indigo-600 hover:text-indigo-900 mr-4'
+                                    >
+                                       Editar
+                                    </button>
+                                    <button
+                                       onClick={() =>
+                                          handleToggleEstado(alumno)
+                                       }
+                                       className={`${
+                                          alumno.estado === 'ACTIVO'
+                                             ? 'text-orange-400 hover:text-red-900'
+                                             : 'text-green-600 hover:text-green-900'
+                                       } mr-4 w-16`}
                                     >
                                        {alumno.estado === 'ACTIVO'
                                           ? 'Desactivar'

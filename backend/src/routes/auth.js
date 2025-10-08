@@ -1,3 +1,5 @@
+//auth.js: es un script que contiene las funciones de autenticación, como el login, registro, recuperación de contraseña, etc.
+
 //express es un framework de node.js que nos permite crear aplicaciones web de manera rápida y fácil.
 const express = require('express');
 // Creamos un router para manejar las rutas

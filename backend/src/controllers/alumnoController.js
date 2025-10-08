@@ -1,4 +1,7 @@
+// alumnoController.js: es un script que contiene los métodos para manejar las peticiones HTTP relacionadas con los alumnos.
+
 const pool = require('../config/database');
+// Importar el archivo de conexión a la base de datos
 const db = require('../config/database');
 
 const alumnoController = {
@@ -19,6 +22,9 @@ const alumnoController = {
             LEFT JOIN paises p ON a.pais_id = p.pais_id
             ORDER BY a.nombre
          `;
+
+         console.log('\n\n------------------------------------------------');
+         console.log('Consulta alumnos:', query);
 
          const alumnos = await db.query(query);
          res.json(alumnos);
@@ -125,6 +131,11 @@ const alumnoController = {
             WHERE alumno_id = ?
          `;
 
+         // Mostrar en consola la consulta y los valores
+         console.log('\n\n------------------------------------------------');
+         console.log('Cambiar estado:\n', query);
+         console.log('Valores: ', [id]);
+
          await db.query(query, [id]);
 
          res.json({ msg: 'Estado del alumno actualizado exitosamente' });
@@ -134,10 +145,10 @@ const alumnoController = {
       }
    },
 
-   // Obtener total de alumnos y estadísticas
+   // Obtener los datos de las tarjetas de la parte superior (Total Alumnos, Alumnos Activos, Alumnos Inactivos y Total Paises)
    getTotalAlumnos: async (req, res) => {
       try {
-         // Obtener total de alumnos activos e inactivos
+         // Obtener total de alumnos (activos/inactivos), esto se almacena en un array
          const [result] = await db.query(`
             SELECT 
                COUNT(*) as total,
@@ -146,13 +157,17 @@ const alumnoController = {
             FROM alumnos
          `);
 
-         // Obtener total de países con alumnos
+         console.log('\n\n------------------------------------------------');
+         console.log('Consulta total de alumnos: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = \'ACTIVO\' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = \'INACTIVO\' THEN 1 ELSE 0 END) as inactivos\n FROM alumnos');
+
+         // Obtener total de países con alumnos desde donde estudian los alumnos
          const [paises] = await db.query(`
             SELECT COUNT(DISTINCT pais_id) as total_paises
             FROM alumnos
             WHERE pais_id IS NOT NULL
          `);
 
+         // Enviar un objeto en la respuesta con la información obtenida
          res.json({
             total: result[0].total || 0,
             activos: result[0].activos || 0,
@@ -162,7 +177,7 @@ const alumnoController = {
       } catch (error) {
          console.error('Error al obtener total de alumnos:', error);
          res.status(500).json({
-            msg: 'Error al obtener estadísticas',
+            msg: 'Error al obtener total de alumnos y países',
             error: error.message,
          });
       }
@@ -202,7 +217,7 @@ const alumnoController = {
       }
    },
 
-   // Obtener distribución de alumnos por país
+   // Obtener distribución de alumnos por país, esta ruta es para pintar el grafico de barras de Alumnos por país
    getAlumnosPorPais: async (req, res) => {
       try {
          const [result] = await db.query(`
@@ -215,13 +230,14 @@ const alumnoController = {
             ORDER BY cantidad DESC
          `);
 
-         // Asegurarnos de que la respuesta sea un array
+         // Asegurarnos de que la respuesta sea un array, si no es un array, lo convertimos a un array vacío porque si no es un array, el front no lo puede leer
          if (!Array.isArray(result)) {
             console.log('Resultado no es un array:', result);
             res.json([]);
             return;
          }
 
+         // Enviar la respuesta
          res.json(result);
       } catch (error) {
          console.error('Error al obtener distribución por país:', error);

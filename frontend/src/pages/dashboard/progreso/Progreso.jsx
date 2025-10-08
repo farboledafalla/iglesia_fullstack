@@ -104,7 +104,7 @@ const Progreso = () => {
                               </th>
                               <th
                                  scope='col'
-                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
                                  Estado
                               </th>
@@ -116,9 +116,9 @@ const Progreso = () => {
                               </th>
                               <th
                                  scope='col'
-                                 className='relative py-3.5 pl-3 pr-4 sm:pr-6'
+                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 <span className='sr-only'>Acciones</span>
+                                 Acciones
                               </th>
                            </tr>
                         </thead>
@@ -134,7 +134,7 @@ const Progreso = () => {
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {progreso.titulo_leccion}
                                  </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <span
                                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                                           progreso.estado === 'COMPLETADA'
@@ -152,7 +152,7 @@ const Progreso = () => {
                                        progreso.fecha_completado
                                     ).toLocaleDateString()}
                                  </td>
-                                 <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6'>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
                                     <button
                                        onClick={() => handleOpenModal(progreso)}
                                        className='text-indigo-600 hover:text-indigo-900'

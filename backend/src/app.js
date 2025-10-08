@@ -1,4 +1,6 @@
-//dotenv es un paquete que te permite cargar variables de entorno desde un archivo .env
+//app.js: es el archivo principal de la aplicación, es el que se ejecuta para iniciar el servidor y escuchar las peticiones que se hacen a la aplicación.
+
+//dotenv es un paquete que te permite cargar variables de entorno desde un archivo .env y el .config() carga las variables de entorno desde el archivo.env
 require('dotenv').config();
 //express es un framework para crear aplicaciones web en Node.js
 const express = require('express');
@@ -6,11 +8,14 @@ const express = require('express');
 const cors = require('cors');
 
 //Incluir las rutas desde donde se llaman los diferentes controladores
+//Ruta para la conexión a la bd, desde aquí se conecta la bd
 const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/courses');
 const userRoutes = require('./routes/users');
+// Rutas para paises
 const paisesRoutes = require('./routes/paises');
 const continentesRoutes = require('./routes/continentes');
+// Rutas para alumnos
 const alumnosRoutes = require('./routes/alumnos');
 const modulosRoutes = require('./routes/modulos');
 const instructoresRoutes = require('./routes/instructores');
@@ -32,8 +37,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
+// Rutas para paises
 app.use('/api/paises', paisesRoutes);
 app.use('/api/continentes', continentesRoutes);
+// Rutas para alumnos
 app.use('/api/alumnos', alumnosRoutes);
 app.use('/api/modulos', modulosRoutes);
 app.use('/api/instructores', instructoresRoutes);
@@ -47,5 +54,6 @@ const PORT = process.env.PORT || 3001;
 
 // Iniciar el servidor y escuchar peticiones por el puerto especificado
 app.listen(PORT, () => {
+   console.log('\n\n------------------------------------------------');
    console.log(`Servidor corriendo en puerto ${PORT}`);
 });

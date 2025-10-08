@@ -1,6 +1,11 @@
+// Sidebar.jsx: es un script que muestra el sidebar de la aplicación, es un componente funcional que recibe dos propiedades, sidebarOpen y setSidebarOpen, que se utilizan para mostrar y ocultar el sidebar.
+
 import React from 'react';
+// NavLink: es un componente que se utiliza para crear enlaces en la aplicación, useLocation: es un hook que se utiliza para obtener la ubicación actual de la aplicación.
 import { NavLink, useLocation } from 'react-router-dom';
+// useAuth: es un hook que se utiliza para obtener el estado del contexto de autenticación
 import { useAuth } from '../../context/AuthContext';
+// Importamos los iconos de Heroicons
 import {
    XMarkIcon as XIcon,
    HomeIcon,
@@ -11,13 +16,18 @@ import {
    UserIcon,
    QueueListIcon,
 } from '@heroicons/react/24/outline';
+// Importamos el logo de la aplicación
 import logo from '../../assets/images/logo_iglesia.png';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+   // Traemos los datos del usuario en la variable de estado user desde el contexto para verificar si el usuario es administrador
    const { user } = useAuth();
+   // Obtenemos la ubicación actual de la aplicación
    const { pathname } = useLocation();
+   // Verificamos si el usuario es administrador, en la variable isAdmin se guarda el valor true o false
    const isAdmin = user?.rol === 'admin';
 
+   // Definimos las rutas de navegación si el usuario es administrador
    const adminNavigation = [
       { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
       { name: 'Alumnos', href: '/dashboard/alumnos', icon: UserGroupIcon },
@@ -41,11 +51,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       },
    ];
 
+   // Definimos las rutas de navegación si el usuario es alumno
    const studentNavigation = [
       { name: 'Mi Dashboard', href: '/dashboard', icon: HomeIcon },
       { name: 'Mi Perfil', href: '/dashboard/perfil', icon: UserIcon },
    ];
 
+   // Definimos las rutas de navegación según el rol del usuario, en la variable navigation se guardan las rutas de navegación según el rol del usuario
    const navigation = isAdmin ? adminNavigation : studentNavigation;
 
    return (
@@ -115,6 +127,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                         />
                      </div>
                      <nav className='mt-5 flex-1 px-2 space-y-1'>
+                        {/* Recorrer el array que tiene las opciones del sidebar */}
                         {navigation.map((item) => (
                            <NavLink
                               key={item.name}

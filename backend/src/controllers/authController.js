@@ -31,16 +31,27 @@ const authController = {
       const { email, password } = req.body;
 
       try {
-         // Verificar si ese email está asociado a un usuario y que ese usuario tenga un ro_id asociado a un rol en la tabla roles
+         // Verificar si ese email está asociado a un usuario y que ese usuario tenga un rol_id asociado a un rol en la tabla roles
          // Esta petición retorna un array con los usuarios que coinciden con el email
          const [users] = await pool.query(
             'SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.rol_id = r.rol_id WHERE u.email = ?',
             [email]
          );
 
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Consulta alumnos:',
+            'SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.rol_id = r.rol_id WHERE u.email =',
+            email
+         );
+
          // Si no hay usuarios con ese email, se devuelve un mensaje de error
          if (users.length === 0) {
-            return res.status(400).json({ msg: 'No existe ese Email!!!' });
+            console.log('\n\n------------------------------------------------');
+            console.log('No existe el email', email);
+            return res
+               .status(400)
+               .json({ msg: 'No existe el email', email: email });
          }
 
          // Extraer el primer usuario del array, si existe un usuario con ese email, se guarda en la variable user
@@ -50,8 +61,11 @@ const authController = {
          const isMatch = await bcrypt.compare(password, user.password_hash);
          // Si la contraseña no coincide, se devuelve un mensaje de error
          if (!isMatch) {
+            console.log('\n\n------------------------------------------------');
+            console.error('La contraseña no es la correcta para el email', email);
             return res.status(400).json({
-               msg: 'La contraseña no es la correcta para ese Email!!!',
+               msg: 'La contraseña no es la correcta para el email',
+               email: email,
             });
          }
 

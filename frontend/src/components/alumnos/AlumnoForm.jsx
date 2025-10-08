@@ -1,6 +1,9 @@
+//AlumnoForm.jsx: este script define el formulario para crear y editar usuarios.
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
+//Las 3 propiedades que recibe el componente son:  alumno, onSubmit y onCancel. alumno es el alumno que se va a editar, onSubmit es una función que se ejecuta cuando se guarda el alumno y onCancel es una función que se ejecuta cuando se cancela la edición o creación del alumno.
 const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    const { token } = useAuth();
    const [formData, setFormData] = useState({
@@ -12,6 +15,7 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    const [paises, setPaises] = useState([]);
    const [loading, setLoading] = useState(true);
 
+   // Cargar países al iniciar
    useEffect(() => {
       const fetchPaises = async () => {
          try {
@@ -32,7 +36,7 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
       fetchPaises();
    }, [token]);
 
-   // Inicializar el formulario cuando se recibe el alumno
+   // Inicializar el formulario cuando se recibe el alumno en la propiedad value (value={formData.nombre}) del formulario.
    useEffect(() => {
       if (alumno) {
          setFormData({

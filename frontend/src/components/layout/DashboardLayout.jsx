@@ -1,9 +1,14 @@
+// DashboardLayout.jsx: es un script que se encarga de mostrar el layout de la aplicación, es decir, el sidebar y el contenido principal.
+
 import React, { useState } from 'react';
+// Se importa el sidebar y el header
 import Sidebar from './Sidebar';
 import Header from './Header';
+// Se importa Outlet para mostrar el contenido de las rutas hijas
 import { Outlet } from 'react-router-dom';
 
 const DashboardLayout = () => {
+   // Estado para mostrar el sidebar en móvil
    const [sidebarOpen, setSidebarOpen] = useState(false);
 
    return (

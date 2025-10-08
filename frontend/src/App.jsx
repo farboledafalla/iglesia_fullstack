@@ -1,4 +1,5 @@
-// App.js es el script que contiene toda la aplicación, por eso es invocado desde /src/main.jsx
+// App.jsx: es el script que contiene toda la aplicación, por eso es invocado desde /src/main.jsx
+// Se importa el componente Routes desde react-router-dom para crear las rutas de la aplicación y Route para crear una ruta específica
 import { Routes, Route } from 'react-router-dom';
 // Se importa el componente Login desde /src/pages/auth/Login.jsx para ingresar a la App
 import Login from './pages/auth/Login';

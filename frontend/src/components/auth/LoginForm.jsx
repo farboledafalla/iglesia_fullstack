@@ -1,6 +1,6 @@
 // LoginForm.jsx: este script se encarga de manejar el formulario de inicio de sesión de la aplicación
 // import React, { useState } from'react'; esto se importa para poder usar el hook useState
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 // Importar el hook useNavigate para redirigir a otras páginas
 import { useNavigate } from 'react-router-dom';
 // Importar el contexto de autenticación
@@ -14,11 +14,17 @@ const LoginForm = () => {
       password: '',
    });
    const [error, setError] = useState('');
+   const inputEmailRef = useRef(null);
 
    // Obtener la función login del contexto de autenticación
    const { login } = useAuth();
    // Obtener la función navigate del hook useNavigate
    const navigate = useNavigate();
+
+   // useEffect para establecer el foco en el campo de email al montar el componente
+   useEffect(() => {
+      inputEmailRef.current.focus();
+   }, []);
 
    // Manejo de cambios en el formulario, cada vez que se cambie un campo del formulario, se actualiza el estado del formulario (formData)
    const handleChange = (e) => {
@@ -37,13 +43,29 @@ const LoginForm = () => {
       try {
          const dataAuthContext = await login(formData.email, formData.password);
 
+         if (dataAuthContext && !dataAuthContext.ok) {
+            // Creamos un array con los dos valores, eliminamos valores vacíos/undefined con filter, y unimos con join
+            const msg =
+               [dataAuthContext?.msg, dataAuthContext?.email]
+                  .filter(Boolean)
+                  .join(' ') ??
+               dataAuthContext?.error ??
+               'Error al iniciar sesión';
+            setError(msg);
+            setFormData({ email: '', password: '' }); // Limpiar formulario
+            inputEmailRef.current.focus(); // Volver a poner el foco en el campo email
+            return; // Salir de la función si hay un error
+         }
+
          //Imprimir data, retornada desde /AuthConttext.jsx en la función login
          //Se imprime solo para pruebas y si es que se requieren esos datos para algo, ya se tienen en el estado del contexto de autenticación (user y token)
          console.log('Data retornada desde AuthContext: ', dataAuthContext);
 
          navigate('/dashboard');
       } catch (error) {
-         // Si hay un error, se actualiza el estado del error (error)
+         //imprimir error en la consola, este error viene desde AuthContext.jsx
+         console.error('Error en el login desde LoginForm:', error);
+         // Si hay un error, se actualiza el estado del error (error) para que se muestre en pantalla
          setError('Error al iniciar sesión');
       }
    };
@@ -71,6 +93,7 @@ const LoginForm = () => {
                id='email'
                name='email'
                type='email'
+               ref={inputEmailRef} // Referencia para el foco al cargar el componente
                required
                value={formData.email}
                onChange={handleChange}

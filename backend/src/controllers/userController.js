@@ -7,11 +7,22 @@ const userController = {
    getUsers: async (req, res) => {
       try {
          const [users] = await pool.query(
-            'SELECT u.usuario_id, u.nombre, u.email, u.estado, r.nombre_rol, p.nombre_pais ' +
+            'SELECT u.usuario_id, u.nombre, u.email, u.estado, u.rol_id, u.pais_id, r.nombre_rol, p.nombre_pais ' +
                'FROM usuarios u ' +
                'JOIN roles r ON u.rol_id = r.rol_id ' +
                'JOIN paises p ON u.pais_id = p.pais_id'
          );
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Consulta usuarios:',
+            '\nSELECT u.usuario_id, u.nombre, u.email, u.estado, u.rol_id, u.pais_id, r.nombre_rol, p.nombre_pais ' +
+               '\nFROM usuarios u ' +
+               '\nJOIN roles r ON u.rol_id = r.rol_id ' +
+               '\nJOIN paises p ON u.pais_id = p.pais_id'
+         );
+
          res.json(users);
       } catch (err) {
          console.error(err.message);
@@ -44,12 +55,24 @@ const userController = {
 
    // Actualizar usuario
    updateUser: async (req, res) => {
-      const { nombre, email, pais_id } = req.body;
+      const { nombre, email, rol_id, pais_id } = req.body;
 
       try {
          const [result] = await pool.query(
-            'UPDATE usuarios SET nombre = ?, email = ?, pais_id = ? WHERE usuario_id = ?',
-            [nombre, email, pais_id, req.params.id]
+            'UPDATE usuarios SET nombre = ?, email = ?, rol_id = ?, pais_id = ? WHERE usuario_id = ?',
+            [nombre, email, rol_id, pais_id, req.params.id]
+         );
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Actualizar usuario:',
+            '\nUPDATE usuarios SET nombre = ?, email = ?, rol_id = ?, pais_id = ? WHERE usuario_id = ?\n',
+            nombre,
+            email,
+            rol_id,
+            pais_id,
+            req.params.id
          );
 
          if (result.affectedRows === 0) {
@@ -65,6 +88,10 @@ const userController = {
 
    // Crear usuario
    createUser: async (req, res) => {
+      // Logs para depuración
+      console.log('\n\n------------------------------------------------');
+      console.log('Ingresando a createUser con datos:', req.body);
+
       const { nombre, email, password, pais_id, rol_id } = req.body;
 
       try {
@@ -101,6 +128,7 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log('INSERT a la tabla usuarios...');
          console.log(
             'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
             nombre,
@@ -123,6 +151,9 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(
+            'SELECT para enviar al FrontEnd y refrescar listado de usuarios...'
+         );
          console.log(
             'SELECT u.usuario_id, u.nombre, u.email, u.pais_id, u.rol_id, u.estado, r.nombre_rol, p.nombre_pais, u.fecha_registro ' +
                'FROM usuarios u ' +
@@ -169,6 +200,14 @@ const userController = {
             [id]
          );
 
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Consulta si existe ese usuario:',
+            'SELECT usuario_id, estado FROM usuarios WHERE usuario_id =',
+            id
+         );
+
          if (user.length === 0) {
             return res.status(404).json({
                msg: 'Usuario no encontrado',
@@ -178,28 +217,53 @@ const userController = {
 
          // Actualizamos el estado del usuario
          const query = `
-            UPDATE usuarios
-            SET estado = CASE 
-               WHEN estado = 'ACTIVO' THEN 'INACTIVO'
-               ELSE 'ACTIVO'
-            END
-            WHERE usuario_id = ?
+         UPDATE usuarios
+         SET estado = CASE 
+         WHEN estado = 'ACTIVO' THEN 'INACTIVO'
+         ELSE 'ACTIVO'
+         END
+         WHERE usuario_id = ?
          `;
 
          await pool.query(query, [id]);
 
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Cambio de estado del usuario:',
+            `\nUPDATE usuarios
+               SET estado = CASE 
+               WHEN estado = 'ACTIVO' THEN 'INACTIVO'
+               ELSE 'ACTIVO'
+               END
+               WHERE usuario_id = ${id}`
+         );
+
          // También actualizamos el estado en la tabla alumnos si es un alumno
          const alumnoQuery = `
-            UPDATE alumnos
-            SET estado = (
-               SELECT estado 
-               FROM usuarios 
-               WHERE usuario_id = ?
+         UPDATE alumnos
+         SET estado = (
+            SELECT estado 
+            FROM usuarios 
+            WHERE usuario_id = ?
             )
             WHERE usuario_id = ?
-         `;
+            `;
 
          await pool.query(alumnoQuery, [id, id]);
+
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Cambio de estado del alumno:',
+            `\nUPDATE alumnos
+               SET estado = (
+                  SELECT estado 
+                  FROM usuarios 
+                  WHERE usuario_id = ${id}
+               )
+            WHERE usuario_id = ${id}`
+         );
 
          res.json({
             msg: 'Estado del usuario actualizado exitosamente',

@@ -445,6 +445,10 @@ const Alumnos = () => {
                                        onClick={() => {
                                           setSelectedAlumno(alumno);
                                           setIsModalOpen(true);
+                                          console.log(
+                                             'alumno selected:',
+                                             alumno
+                                          );
                                        }}
                                        className='text-indigo-600 hover:text-indigo-900 mr-4'
                                     >

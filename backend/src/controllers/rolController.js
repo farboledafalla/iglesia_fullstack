@@ -8,6 +8,13 @@ const rolController = {
             'SELECT rol_id, nombre_rol FROM roles ORDER BY nombre_rol'
          );
 
+         // Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(
+            'Consulta roles:',
+            '\nSELECT rol_id, nombre_rol FROM roles ORDER BY nombre_rol'
+         );
+
          res.json(roles);
       } catch (error) {
          console.error('Error al obtener roles:', error);

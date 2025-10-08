@@ -3,6 +3,20 @@ const pool = require('../config/database');
 
 const paisController = {
    // ... otros métodos existentes ...
+   getPaises: async (req, res) => {
+ try {
+    const [paises] = await pool.query(
+       'SELECT * FROM paises ORDER BY nombre_pais'
+    );
+
+    console.log('\n\n------------------------------------------------');
+    console.log('Consulta países: \nSELECT * FROM paises ORDER BY nombre_pais');
+    res.json(paises);
+ } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Error del servidor');
+ }
+   },
 
    // Crear múltiples países
    createMultiplePaises: async (req, res) => {

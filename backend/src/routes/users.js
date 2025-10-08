@@ -4,7 +4,6 @@ const auth = require('../middleware/auth');
 const { checkRole } = require('../middleware/roleCheck');
 const userController = require('../controllers/userController');
 
-// Controladores (los crearemos después)
 const {
    getUsers,
    getUserById,

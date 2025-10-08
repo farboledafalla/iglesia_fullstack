@@ -31,6 +31,8 @@ const Usuarios = () => {
    }, [token]);
 
    const handleOpenModal = (usuario = null) => {
+      console.log('usuario selected:', usuario);
+
       setSelectedUsuario(usuario);
       setIsModalOpen(true);
    };
@@ -61,7 +63,11 @@ const Usuarios = () => {
          // Evitar duplicados: si ya existe, actualizamos en lugar de añadir
          const exists = usuarios.some((u) => u.usuario_id === user.usuario_id);
          if (exists) {
-            setUsuarios(usuarios.map((u) => (u.usuario_id === user.usuario_id ? { ...u, ...user } : u)));
+            setUsuarios(
+               usuarios.map((u) =>
+                  u.usuario_id === user.usuario_id ? { ...u, ...user } : u
+               )
+            );
          } else {
             setUsuarios([...usuarios, user]);
          }

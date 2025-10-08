@@ -15,20 +15,7 @@ const {
    createMultiplePaises,
 } = require('../controllers/paisController');
 
-router.get('/', async (req, res) => {
-   try {
-      const [paises] = await pool.query(
-         'SELECT * FROM paises ORDER BY nombre_pais'
-      );
-
-      console.log('\n\n------------------------------------------------');
-      console.log('Consulta países: \nSELECT * FROM paises ORDER BY nombre_pais');
-      res.json(paises);
-   } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Error del servidor');
-   }
-});
+router.get('/', getPaises);
 
 // Crear múltiples países (solo admin)
 router.post(

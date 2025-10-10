@@ -1,0 +1,103 @@
+{
+   "scannedAt": "2025-10-10T00:00:00.000Z",
+   "root": "src/controllers",
+   "matchesCount": 17,
+   "matches": [
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 1,
+         "line": "// alumnoController.js: es un script que contiene los métodos para manejar las peticiones HTTP relacionadas con los alumnos.",
+         "matched": ["<file-header>"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 23,
+         "line": "FROM alumnos a",
+         "matched": ["FROM_alumnos", "SELECT_from_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 60,
+         "line": "const [existingAlumno] = await pool.query('SELECT alumno_id FROM alumnos WHERE usuario_id = ?', [usuario_id]);",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 124,
+         "line": "'SELECT alumno_id FROM alumnos WHERE alumno_id = ?',",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 134,
+         "line": "'SELECT alumno_id FROM alumnos WHERE alumno_id = ?',",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 171,
+         "line": "FROM alumnos",
+         "matched": ["FROM_alumnos", "SELECT_from_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 235,
+         "line": "FROM alumnos",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 242,
+         "line": "\"Consulta total de alumnos: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos\n FROM alumnos\"",
+         "matched": ["SELECT_from_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 248,
+         "line": "FROM alumnos",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 289,
+         "line": "DELETE FROM alumnos",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 309,
+         "line": "FROM alumnos a",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 362,
+         "line": "FROM alumnos a",
+         "matched": ["FROM_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 369,
+         "line": "if (alumnos.length === 0) {",
+         "matched": ["<reference-to-alumnos-array>"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": 403,
+         "line": "const [rows] = await pool.query('SELECT * FROM alumnos WHERE usuario_id = ?', [usuario_id]);",
+         "matched": ["SELECT_from_alumnos"]
+      },
+      {
+         "file": "src/controllers/progresoAlumnosController.js",
+         "lineNumber": 22,
+         "line": "INNER JOIN alumnos a ON pa.alumno_id = a.alumno_id",
+         "matched": ["JOIN_alumnos"]
+      },
+      {
+         "file": "src/controllers/alumnoController.js",
+         "lineNumber": null,
+         "line": "<multi-line match: SELECT ... FROM alumnos>",
+         "matched": ["SELECT_from_alumnos"]
+      }
+   ]
+}

@@ -214,6 +214,15 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             </>
          )}
 
+         {usuarioTieneAlumno && (
+            <div className='bg-yellow-50 border-l-4 border-yellow-400 p-4'>
+               <p className='text-yellow-800'>
+                  Este usuario ya tiene un alumno asociado. No podrá crear un
+                  nuevo alumno para el mismo usuario.
+               </p>
+            </div>
+         )}
+
          <div>
             <label
                htmlFor='identificacion'
@@ -237,15 +246,6 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             />
          </div>
 
-            {usuarioTieneAlumno && (
-               <div className='bg-yellow-50 border-l-4 border-yellow-400 p-4'>
-                  <p className='text-yellow-800'>
-                     Este usuario ya tiene un alumno asociado. No podrá crear un nuevo
-                     alumno para el mismo usuario.
-                  </p>
-               </div>
-            )}
-
          <div>
             <label
                htmlFor='nombre'
@@ -260,10 +260,12 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                value={formData.nombre}
                onChange={handleChange}
                required
-                  readOnly={!!formData.usuario_id && !alumno}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                     !!formData.usuario_id && !alumno ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed' : ''
-                  }`}
+               readOnly={!!formData.usuario_id && !alumno}
+               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  !!formData.usuario_id && !alumno
+                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                     : ''
+               }`}
             />
          </div>
 
@@ -281,10 +283,12 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                value={formData.email}
                onChange={handleChange}
                required
-                  readOnly={!!formData.usuario_id && !alumno}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                     !!formData.usuario_id && !alumno ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed' : ''
-                  }`}
+               readOnly={!!formData.usuario_id && !alumno}
+               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  !!formData.usuario_id && !alumno
+                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                     : ''
+               }`}
             />
          </div>
 

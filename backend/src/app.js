@@ -24,6 +24,9 @@ const preguntasRouter = require('./routes/preguntas');
 const progresoAlumnosRouter = require('./routes/progreso-alumnos');
 const rolesRoutes = require('./routes/roles');
 
+// Importar función obtenerFechaHoraActual
+const { obtenerFechaHoraActual } = require('./utils/funciones');
+
 // Inicializar Express
 const app = express();
 
@@ -55,5 +58,7 @@ const PORT = process.env.PORT || 3001;
 // Iniciar el servidor y escuchar peticiones por el puerto especificado
 app.listen(PORT, () => {
    console.log('\n\n------------------------------------------------');
+   console.log(obtenerFechaHoraActual());
+   console.log('/app.js');
    console.log(`Servidor corriendo en puerto ${PORT}`);
 });

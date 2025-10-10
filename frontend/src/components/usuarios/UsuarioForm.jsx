@@ -17,7 +17,11 @@ const UsuarioForm = ({ usuario, onSubmit, onCancel }) => {
    useEffect(() => {
       const fetchPaises = async () => {
          try {
-            const response = await fetch('http://localhost:3002/api/paises');
+            const response = await fetch('http://localhost:3002/api/paises', {
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            });
             const data = await response.json();
             setPaises(data);
          } catch (err) {

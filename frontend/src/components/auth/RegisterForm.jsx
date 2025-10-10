@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 const RegisterForm = () => {
    // Estado para el formulario
    const [formData, setFormData] = useState({
+      identificacion: '',
       nombre: '',
       email: '',
       password: '',
@@ -67,15 +68,24 @@ const RegisterForm = () => {
             }
          );
 
-         // 
          const data = await response.json();
 
          if (!response.ok) {
             throw new Error(data.msg || 'Error al registrar usuario');
          }
 
-         login(data.token);
-         navigate('/dashboard');
+         // Auto-login usando la función del contexto (misma firma que LoginForm)
+         const authRes = await login(formData.email, formData.password);
+
+         if (authRes?.ok) {
+            navigate('/dashboard');
+         } else {
+            // Registro exitoso pero no se pudo iniciar sesión automáticamente
+            setError(
+               authRes?.msg ??
+                  'Registro correcto pero no se pudo iniciar sesión'
+            );
+         }
       } catch (err) {
          setError(err.message);
       }
@@ -91,92 +101,125 @@ const RegisterForm = () => {
                <span className='block sm:inline'>{error}</span>
             </div>
          )}
-         <div className='rounded-md shadow-sm -space-y-px'>
-            <div>
-               <label htmlFor='nombre' className='sr-only'>
-                  Nombre
-               </label>
-               <input
-                  id='nombre'
-                  name='nombre'
-                  type='text'
-                  required
-                  className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-                  placeholder='Nombre completo'
-                  value={formData.nombre}
-                  onChange={handleChange}
-               />
-            </div>
-            <div>
-               <label htmlFor='email' className='sr-only'>
-                  Email
-               </label>
-               <input
-                  id='email'
-                  name='email'
-                  type='email'
-                  required
-                  className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-                  placeholder='Correo electrónico'
-                  value={formData.email}
-                  onChange={handleChange}
-               />
-            </div>
-            <div>
-               <label htmlFor='telefono' className='sr-only'>
-                  Teléfono
-               </label>
-               <input
-                  id='telefono'
-                  name='telefono'
-                  type='tel'
-                  className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-                  placeholder='Número de teléfono'
-                  value={formData.telefono}
-                  onChange={handleChange}
-               />
-            </div>
-            <div>
-               <label htmlFor='password' className='sr-only'>
-                  Contraseña
-               </label>
-               <input
-                  id='password'
-                  name='password'
-                  type='password'
-                  required
-                  className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-                  placeholder='Contraseña'
-                  value={formData.password}
-                  onChange={handleChange}
-               />
-            </div>
-            <div>
-               <label htmlFor='pais_id' className='sr-only'>
-                  País
-               </label>
-               <select
-                  id='pais_id'
-                  name='pais_id'
-                  required
-                  className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-                  value={formData.pais_id}
-                  onChange={handleChange}
-               >
-                  <option value=''>Selecciona un país</option>
-                  {paises.map((pais) => (
-                     <option key={pais.pais_id} value={pais.pais_id}>
-                        {pais.nombre_pais}
-                     </option>
-                  ))}
-               </select>
-            </div>
+
+         <div>
+            <label
+               htmlFor='identificacion'
+               className='block text-sm font-medium text-gray-700 mt-3'
+            >
+               Identificacion
+            </label>
+            <input
+               type='text'
+               name='identificacion'
+               id='identificacion'
+               placeholder='Número de identificación'
+               value={formData.identificacion}
+               onChange={handleChange}
+               required
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            />
+         </div>
+
+         <div>
+            <label
+               htmlFor='nombre'
+               className='block text-sm font-medium text-gray-700'
+            >
+               Nombre
+            </label>
+            <input
+               id='nombre'
+               name='nombre'
+               type='text'
+               required
+               placeholder='Nombre completo'
+               value={formData.nombre}
+               onChange={handleChange}
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            />
+         </div>
+         <div>
+            <label
+               htmlFor='email'
+               className='block text-sm font-medium text-gray-700'
+            >
+               Email
+            </label>
+            <input
+               id='email'
+               name='email'
+               type='email'
+               required
+               placeholder='Correo electrónico'
+               value={formData.email}
+               onChange={handleChange}
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            />
+         </div>
+         <div>
+            <label
+               htmlFor='telefono'
+               className='block text-sm font-medium text-gray-700'
+            >
+               Teléfono
+            </label>
+            <input
+               id='telefono'
+               name='telefono'
+               type='tel'
+               placeholder='Número de teléfono'
+               value={formData.telefono}
+               onChange={handleChange}
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            />
+         </div>
+         <div>
+            <label
+               htmlFor='password'
+               className='block text-sm font-medium text-gray-700'
+            >
+               Contraseña
+            </label>
+            <input
+               id='password'
+               name='password'
+               type='password'
+               required
+               placeholder='Contraseña'
+               value={formData.password}
+               onChange={handleChange}
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            />
+         </div>
+         <div>
+            <label
+               htmlFor='pais_id'
+               className='block text-sm font-medium text-gray-700'
+            >
+               País
+            </label>
+            <select
+               id='pais_id'
+               name='pais_id'
+               required
+               value={formData.pais_id}
+               onChange={handleChange}
+               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+            >
+               <option value=''>Selecciona un país</option>
+               {paises.map((pais) => (
+                  <option key={pais.pais_id} value={pais.pais_id}>
+                     {pais.nombre_pais}
+                  </option>
+               ))}
+            </select>
          </div>
 
          <div>
             <button
                type='submit'
-               className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+               className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
             >
                Registrarse
             </button>

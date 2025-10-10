@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }) => {
 
          // Parsear la respuesta una sola vez
          const data = await response.json();
-         console.log('Mensaje de la API: ', data.msg, data.email);
 
          // Si la respuesta NO es ok, devolver la data al llamador para que muestre el mensaje
          if (!response.ok) {

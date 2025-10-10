@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator');
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
+//Importar función obtenerFechaHoraActual
+const { obtenerFechaHoraActual } = require('../utils/funciones');
 
 const userController = {
    // Obtener todos los usuarios
@@ -15,6 +17,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Consulta usuarios:',
             '\nSELECT u.usuario_id, u.nombre, u.email, u.estado, u.rol_id, u.pais_id, r.nombre_rol, p.nombre_pais ' +
@@ -65,6 +69,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Actualizar usuario:',
             '\nUPDATE usuarios SET nombre = ?, email = ?, rol_id = ?, pais_id = ? WHERE usuario_id = ?\n',
@@ -90,6 +96,8 @@ const userController = {
    createUser: async (req, res) => {
       // Logs para depuración
       console.log('\n\n------------------------------------------------');
+      console.log(obtenerFechaHoraActual());
+      console.log('/controllers/userController.js');
       console.log('Ingresando a createUser con datos:', req.body);
 
       const { nombre, email, password, pais_id, rol_id } = req.body;
@@ -103,6 +111,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Consulta si existe ese email:',
             'SELECT usuario_id FROM usuarios WHERE email =',
@@ -112,6 +122,8 @@ const userController = {
          if (existing.length > 0) {
             // Logs para depuración
             console.log('\n\n------------------------------------------------');
+            console.log(obtenerFechaHoraActual());
+            console.log('/controllers/userController.js');
             console.log('El email ya está registrado:');
             return res.status(400).json({ msg: 'El email ya está registrado' });
          }
@@ -128,6 +140,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log('INSERT a la tabla usuarios...');
          console.log(
             'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
@@ -151,6 +165,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'SELECT para enviar al FrontEnd y refrescar listado de usuarios...'
          );
@@ -202,6 +218,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Consulta si existe ese usuario:',
             'SELECT usuario_id, estado FROM usuarios WHERE usuario_id =',
@@ -229,6 +247,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Cambio de estado del usuario:',
             `\nUPDATE usuarios
@@ -254,6 +274,8 @@ const userController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
          console.log(
             'Cambio de estado del alumno:',
             `\nUPDATE alumnos

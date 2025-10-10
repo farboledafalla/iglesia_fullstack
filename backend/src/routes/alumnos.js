@@ -18,6 +18,9 @@ router.get('/', alumnoController.getAlumnos);
 // Crear un nuevo alumno
 router.post('/', alumnoController.createAlumno);
 
+// Verificar si un usuario ya tiene alumno
+router.get('/by-usuario/:usuario_id', alumnoController.getByUsuarioId);
+
 // Actualizar un alumno
 router.put('/:id', alumnoController.updateAlumno);
 

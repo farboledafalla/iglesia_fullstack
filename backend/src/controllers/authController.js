@@ -11,6 +11,8 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 //pool es una función que te permite conectar a la base de datos
 const pool = require('../config/database');
+//Importar función obtenerFechaHoraActual
+const { obtenerFechaHoraActual } = require('../utils/funciones');
 
 // Controlador para manejar las peticiones de autenticación
 const authController = {
@@ -39,6 +41,8 @@ const authController = {
          );
 
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/authController.js');
          console.log(
             'Consulta alumnos:',
             'SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.rol_id = r.rol_id WHERE u.email =',
@@ -48,6 +52,8 @@ const authController = {
          // Si no hay usuarios con ese email, se devuelve un mensaje de error
          if (users.length === 0) {
             console.log('\n\n------------------------------------------------');
+            console.log(obtenerFechaHoraActual());
+            console.log('/controllers/authController.js');
             console.log('No existe el email', email);
             return res
                .status(400)
@@ -62,7 +68,12 @@ const authController = {
          // Si la contraseña no coincide, se devuelve un mensaje de error
          if (!isMatch) {
             console.log('\n\n------------------------------------------------');
-            console.error('La contraseña no es la correcta para el email', email);
+            console.log(obtenerFechaHoraActual());
+            console.log('/controllers/authController.js');
+            console.error(
+               'La contraseña no es la correcta para el email',
+               email
+            );
             return res.status(400).json({
                msg: 'La contraseña no es la correcta para el email',
                email: email,
@@ -109,74 +120,78 @@ const authController = {
    // req es el objeto que contiene la información de la petición
    // res es el objeto que contiene la información de la respuesta
    register: async (req, res) => {
+      // Usar una conexión dedicada del pool para la transacción
+      let connection;
       try {
          // Tomar los datos de entrada
-         const { nombre, email, password, telefono, pais_id } = req.body;
+         const { identificacion, nombre, email, password, telefono, pais_id } = req.body;
 
-         // Iniciar transacción
-         await pool.query('START TRANSACTION');
+         connection = await pool.getConnection();
 
-         try {
-            // Generar el hash de la contraseña ingresada
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+         // Promisify de connection.query para usar async/await
+         const query = (sql, params) =>
+            new Promise((resolve, reject) => {
+               connection.query(sql, params, (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+               });
+            });
 
-            // Obtener el rol_id para el rol 'estudiante' y el resultado se guarda en el array 'roles'
-            const [roles] = await pool.query(
-               'SELECT rol_id FROM roles WHERE nombre_rol = ?',
-               ['estudiante']
-            );
-            // Se extrae el rol_id de la promera posición del array 'roles' y se guarda en la variable 'rol_id'
-            const rol_id = roles[0].rol_id;
+         // Iniciar transacción en esta conexión
+         await new Promise((resB, rejB) => connection.beginTransaction((err) => (err ? rejB(err) : resB())));
 
-            // Insertar el usuario
-            // Crear el registro de usuario pasandole los datos en un array
-            const [result] = await pool.query(
-               'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
-               [nombre, email, hashedPassword, pais_id, rol_id]
-            );
-            // Obtener el usuario_id del usuario recién creado
-            const usuario_id = result.insertId;
+         // Generar el hash de la contraseña ingresada
+         const salt = await bcrypt.genSalt(10);
+         const hashedPassword = await bcrypt.hash(password, salt);
 
-            // Crear el registro en la tabla alumnos automáticamente
-            await pool.query(
-               'INSERT INTO alumnos (usuario_id, nombre, email, telefono, pais_id) VALUES (?, ?, ?, ?, ?)',
-               [usuario_id, nombre, email, telefono, pais_id]
-            );
+         // Obtener el rol_id para el rol 'estudiante'
+         const roles = await query('SELECT rol_id FROM roles WHERE nombre_rol = ?', ['estudiante']);
+         const rol_id = roles[0].rol_id;
 
-            // Confirmar la transacción
-            await pool.query('COMMIT');
+         // Insertar el usuario
+         const result = await query(
+            'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
+            [nombre, email, hashedPassword, pais_id, rol_id]
+         );
 
-            // Generar token JWT
-            const payload = {
-               user: {
-                  id: usuario_id,
-                  nombre,
-                  email,
-                  rol: 'estudiante',
-               },
-            };
+         const usuario_id = result.insertId;
 
-            jwt.sign(
-               payload,
-               process.env.JWT_SECRET,
-               { expiresIn: '24h' },
-               (err, token) => {
-                  if (err) throw err;
-                  res.json({ token });
-               }
-            );
-         } catch (error) {
-            // Si hay error, hacer rollback
-            await pool.query('ROLLBACK');
-            throw error;
-         }
-      } catch (error) {
-         console.error(error);
-         res.status(500).json({
-            msg: 'Error en el registro',
-            error: error.message,
+         // Crear el registro en la tabla alumnos automáticamente
+         await query(
+            'INSERT INTO alumnos (usuario_id, identificacion, nombre, email, telefono, pais_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [usuario_id, identificacion, nombre, email, telefono, pais_id]
+         );
+
+         // Confirmar la transacción
+         await new Promise((resC, rejC) => connection.commit((err) => (err ? rejC(err) : resC())));
+
+         // Generar token JWT
+         const payload = {
+            user: {
+               id: usuario_id,
+               nombre,
+               email,
+               rol: 'estudiante',
+            },
+         };
+
+         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' }, (err, token) => {
+            if (err) throw err;
+            res.json({ token });
          });
+      } catch (error) {
+         // Rollback si hay conexión iniciada
+         try {
+            if (connection) await new Promise((resR, rejR) => connection.rollback((err) => (err ? rejR(err) : resR())));
+         } catch (rbErr) {
+            console.error('Error during rollback:', rbErr);
+         }
+
+         console.error(error);
+         res.status(500).json({ msg: 'Error en el registro', error: error.message });
+      } finally {
+         // Liberar la conexión si fue tomada
+         if (connection) connection.release();
       }
    },
 

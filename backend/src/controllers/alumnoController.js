@@ -1,8 +1,8 @@
 // alumnoController.js: es un script que contiene los métodos para manejar las peticiones HTTP relacionadas con los alumnos.
 
 const pool = require('../config/database');
-// Importar el archivo de conexión a la base de datos
-const db = require('../config/database');
+// Importar la función obtenerFechaHoraActual
+const { obtenerFechaHoraActual } = require('../utils/funciones');
 
 const alumnoController = {
    // Obtener todos los alumnos
@@ -11,22 +11,27 @@ const alumnoController = {
          const query = `
             SELECT 
                a.alumno_id,
+               a.identificacion,
                a.nombre,
                a.email,
                a.telefono,
                a.pais_id,
                p.nombre_pais,
                a.fecha_registro,
-               a.estado
+               a.estado,
+               a.usuario_id
             FROM alumnos a
             LEFT JOIN paises p ON a.pais_id = p.pais_id
             ORDER BY a.nombre
          `;
 
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         // Mostrar en consola la consulta que se va a ejecutar
          console.log('Consulta alumnos:', query);
 
-         const alumnos = await db.query(query);
+         const alumnos = await pool.query(query);
          res.json(alumnos);
       } catch (error) {
          console.error(error);
@@ -36,20 +41,67 @@ const alumnoController = {
 
    // Crear un nuevo alumno
    createAlumno: async (req, res) => {
+      //Logs para depuración
+      console.log('\n\n------------------------------------------------');
+      console.log(obtenerFechaHoraActual());
+      console.log('/controllers/alumnoController.js');
+      console.log('Datos recibidos para crear alumno:', req.body);
+
       try {
-         const { nombre, email, telefono, pais_id } = req.body;
+         const { nombre, email, telefono, pais_id, usuario_id, identificacion } = req.body;
+
+         //Validar la existencia del usuario_id en la tabla usuarios
+         const [usuarios] = await pool.query(
+            'SELECT usuario_id FROM usuarios WHERE usuario_id = ?',
+            [usuario_id]
+         );
+
+         // Verificar si ese usuario ya tiene un alumno asociado
+         const [existingAlumno] = await pool.query('SELECT alumno_id FROM alumnos WHERE usuario_id = ?', [usuario_id]);
+         if (existingAlumno.length > 0) {
+            return res.status(400).json({ msg: 'El usuario ya tiene un alumno asociado' });
+         }
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log(
+            'Verificación de usuario_id:',
+            'SELECT usuario_id FROM usuarios WHERE usuario_id = ?',
+            [usuario_id]
+         );
+         console.log('Resultado de la verificación:', usuarios);
 
          const query = `
-            INSERT INTO alumnos (nombre, email, telefono, pais_id)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO alumnos (identificacion, nombre, email, telefono, pais_id, usuario_id)
+            VALUES (?, ?, ?, ?, ?, ?)
          `;
 
-         const result = await db.query(query, [
+         // Si no se envía identificacion, usar cadena vacía para evitar error de campo sin default
+         const ident = identificacion ?? '';
+
+         const result = await pool.query(query, [
+            ident,
             nombre,
             email,
             telefono,
             pais_id,
+            usuario_id,
          ]);
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log('Consulta para crear alumno:', query, [
+            nombre,
+            email,
+            telefono,
+            pais_id,
+            usuario_id,
+         ]);
+         console.log('Alumno creado con ID:', result.insertId);
 
          res.json({
             msg: 'Alumno creado exitosamente',
@@ -68,7 +120,17 @@ const alumnoController = {
          const { nombre, email, telefono, pais_id } = req.body;
 
          // Primero verificamos si el alumno existe
-         const [alumno] = await db.query(
+         const [alumno] = await pool.query(
+            'SELECT alumno_id FROM alumnos WHERE alumno_id = ?',
+            [id]
+         );
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log(
+            'Verificar existencia del alumno:',
             'SELECT alumno_id FROM alumnos WHERE alumno_id = ?',
             [id]
          );
@@ -89,7 +151,14 @@ const alumnoController = {
             WHERE alumno_id = ?
          `;
 
-         await db.query(query, [nombre, email, telefono, pais_id, id]);
+         await pool.query(query, [nombre, email, telefono, pais_id, id]);
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log('Consulta para actualizar alumno:', query);
+         console.log('Valores: ', [nombre, email, telefono, pais_id, id]);
 
          // También actualizamos la tabla usuarios si existe el registro
          const userQuery = `
@@ -104,7 +173,14 @@ const alumnoController = {
             )
          `;
 
-         await db.query(userQuery, [nombre, email, pais_id, id]);
+         await pool.query(userQuery, [nombre, email, pais_id, id]);
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log('Consulta para actualizar usuario:', userQuery);
+         console.log('Valores: ', [nombre, email, pais_id, id]);
 
          res.json({
             msg: 'Alumno actualizado exitosamente',
@@ -133,10 +209,12 @@ const alumnoController = {
 
          // Mostrar en consola la consulta y los valores
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
          console.log('Cambiar estado:\n', query);
          console.log('Valores: ', [id]);
 
-         await db.query(query, [id]);
+         await pool.query(query, [id]);
 
          res.json({ msg: 'Estado del alumno actualizado exitosamente' });
       } catch (error) {
@@ -149,7 +227,7 @@ const alumnoController = {
    getTotalAlumnos: async (req, res) => {
       try {
          // Obtener total de alumnos (activos/inactivos), esto se almacena en un array
-         const [result] = await db.query(`
+         const [result] = await pool.query(`
             SELECT 
                COUNT(*) as total,
                SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,
@@ -158,10 +236,14 @@ const alumnoController = {
          `);
 
          console.log('\n\n------------------------------------------------');
-         console.log('Consulta total de alumnos: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = \'ACTIVO\' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = \'INACTIVO\' THEN 1 ELSE 0 END) as inactivos\n FROM alumnos');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log(
+            "Consulta total de alumnos: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos\n FROM alumnos"
+         );
 
          // Obtener total de países con alumnos desde donde estudian los alumnos
-         const [paises] = await db.query(`
+         const [paises] = await pool.query(`
             SELECT COUNT(DISTINCT pais_id) as total_paises
             FROM alumnos
             WHERE pais_id IS NOT NULL
@@ -195,7 +277,7 @@ const alumnoController = {
             WHERE alumno_id = ?
          `;
 
-         const [result] = await db.query(checkRegistros, [id]);
+         const [result] = await pool.query(checkRegistros, [id]);
 
          if (result.count > 0) {
             return res.status(400).json({
@@ -208,7 +290,7 @@ const alumnoController = {
             WHERE alumno_id = ?
          `;
 
-         await db.query(query, [id]);
+         await pool.query(query, [id]);
 
          res.json({ msg: 'Alumno eliminado exitosamente' });
       } catch (error) {
@@ -220,7 +302,7 @@ const alumnoController = {
    // Obtener distribución de alumnos por país, esta ruta es para pintar el grafico de barras de Alumnos por país
    getAlumnosPorPais: async (req, res) => {
       try {
-         const [result] = await db.query(`
+         const [result] = await pool.query(`
             SELECT 
                p.nombre_pais as pais,
                COUNT(a.alumno_id) as cantidad
@@ -254,7 +336,7 @@ const alumnoController = {
          const usuarioId = req.params.id;
 
          // Primero verificamos si el usuario existe
-         const [usuarios] = await db.query(
+         const [usuarios] = await pool.query(
             'SELECT usuario_id FROM usuarios WHERE usuario_id = ?',
             [usuarioId]
          );
@@ -267,7 +349,7 @@ const alumnoController = {
          }
 
          // Luego obtenemos los datos del alumno
-         const [alumnos] = await db.query(
+         const [alumnos] = await pool.query(
             `SELECT 
                a.alumno_id,
                a.nombre,
@@ -313,6 +395,21 @@ const alumnoController = {
          });
       }
    },
+
+      // Obtener alumno por usuario_id (para verificar si un usuario ya tiene alumno)
+      getByUsuarioId: async (req, res) => {
+         try {
+            const { usuario_id } = req.params;
+            const [rows] = await pool.query('SELECT * FROM alumnos WHERE usuario_id = ?', [usuario_id]);
+            if (rows.length === 0) {
+               return res.json({ exists: false });
+            }
+            res.json({ exists: true, alumno: rows[0] });
+         } catch (error) {
+            console.error('Error getByUsuarioId:', error);
+            res.status(500).json({ msg: 'Error del servidor' });
+         }
+      },
 
    // Comentar o eliminar este método si no se usará por ahora
    /*

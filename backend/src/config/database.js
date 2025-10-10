@@ -6,15 +6,8 @@ const mysql = require('mysql');
 const path = require('path');
 //Esta instrucción es para cargar las variables de entorno desde el archivo .env
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
-
-//Se muestra en consola las variables de entorno para verificar si están correctas, con esto hacemos un debug
-console.log('\n\n------------------------------------------------');
-console.log('Process ENV:', {
-   DB_HOST: process.env.DB_HOST,
-   DB_USER: process.env.DB_USER,
-   //DB_PASSWORD: process.env.DB_PASSWORD,
-   DB_NAME: process.env.DB_NAME,
-});
+// Importar función obtenerFechaHoraActual
+const { obtenerFechaHoraActual } = require('../utils/funciones');
 
 // Configuración de la base de datos, esto es para que el código sea más legible
 const dbConfig = {
@@ -31,6 +24,8 @@ const dbConfig = {
 
 // Mostrar en consola la configuración de la base de datos
 console.log('\n\n------------------------------------------------');
+console.log(obtenerFechaHoraActual());
+console.log('/config/database.js');
 console.log('DB Config:', {
    ...dbConfig,
    //Esta línea es para ocultar la contraseña en la consola
@@ -62,6 +57,8 @@ pool.getConnection((err, connection) => {
    // Si hay una conexión, mostrar un mensaje en consola
    if (connection) {
       console.log('\n\n------------------------------------------------');
+      console.log(obtenerFechaHoraActual());
+      console.log('/config/database.js');
       console.log('Conectado a la base de datos correctamente!');
       connection.release();
    }
@@ -69,21 +66,27 @@ pool.getConnection((err, connection) => {
 });
 
 // Promisify para usar async/await
-//promisePool es un objeto que nos permite usar async/await con el pool de conexiones
+// promisePool es un objeto que nos permite usar async/await con el pool de conexiones
 const promisePool = {
-   //query es una función que nos permite ejecutar una consulta a la base de datos
+   // query es una función que nos permite ejecutar una consulta a la base de datos
    query(sql, values) {
-      // Si todo sale bien aquí retornaría una promesa, por ejemplo si está consultando un usuario, retornaría una promesa con el usuario
       return new Promise((resolve, reject) => {
          pool.query(sql, values, (error, results) => {
-            // Si hay un error, mostrarlo en consola y rechazar la promesa
             if (error) {
                console.error('Error en el query:', error.message);
-               reject(error);
+               return reject(error);
             }
-
-            // Resolver la promesa con los resultados
             resolve([results]);
+         });
+      });
+   },
+
+   // getConnection devuelve una conexión del pool para usar transacciones
+   getConnection() {
+      return new Promise((resolve, reject) => {
+         pool.getConnection((err, connection) => {
+            if (err) return reject(err);
+            resolve(connection);
          });
       });
    },

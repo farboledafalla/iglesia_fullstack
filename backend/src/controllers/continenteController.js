@@ -138,9 +138,21 @@ const continenteController = {
          });
       }
 
+      let connection;
       try {
-         // Iniciar transacción
-         await pool.query('START TRANSACTION');
+         // Tomar una conexión dedicada del pool
+         connection = await pool.getConnection();
+
+         const query = (sql, params) =>
+            new Promise((resolve, reject) => {
+               connection.query(sql, params, (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+               });
+            });
+
+         // Iniciar transacción en la conexión dedicada
+         await new Promise((resB, rejB) => connection.beginTransaction((err) => (err ? rejB(err) : resB())));
 
          const resultados = {
             exitosos: [],
@@ -150,10 +162,9 @@ const continenteController = {
          // Procesar cada continente
          for (const continente of continentes) {
             try {
-               const [result] = await pool.query(
-                  'INSERT INTO continentes (nombre_continente) VALUES (?)',
-                  [continente.nombre_continente]
-               );
+               const result = await query('INSERT INTO continentes (nombre_continente) VALUES (?)', [
+                  continente.nombre_continente,
+               ]);
 
                resultados.exitosos.push({
                   nombre_continente: continente.nombre_continente,
@@ -174,7 +185,7 @@ const continenteController = {
 
          // Si no se insertó ningún continente, hacer rollback
          if (resultados.exitosos.length === 0) {
-            await pool.query('ROLLBACK');
+            await new Promise((resR, rejR) => connection.rollback((err) => (err ? rejR(err) : resR())));
             return res.status(400).json({
                msg: 'No se pudo insertar ningún continente',
                resultados,
@@ -182,17 +193,22 @@ const continenteController = {
          }
 
          // Confirmar la transacción
-         await pool.query('COMMIT');
+         await new Promise((resC, rejC) => connection.commit((err) => (err ? rejC(err) : resC())));
 
          res.json({
             msg: `Se insertaron ${resultados.exitosos.length} continentes correctamente`,
             resultados,
          });
       } catch (err) {
-         // Si hay cualquier error, hacer rollback
-         await pool.query('ROLLBACK');
+         try {
+            if (connection) await new Promise((resR, rejR) => connection.rollback((err) => (err ? rejR(err) : resR())));
+         } catch (rbErr) {
+            console.error('Error durante rollback:', rbErr);
+         }
          console.error(err.message);
          res.status(500).send('Error del servidor');
+      } finally {
+         if (connection) connection.release();
       }
    },
 };

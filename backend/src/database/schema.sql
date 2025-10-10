@@ -78,6 +78,9 @@ CREATE TABLE `alumnos` (
   UNIQUE KEY `unique_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+alter table alumnos add column identificacion int(15);
+alter table alumnos modify column identificacion int(15) not null unique;
+
 
 CREATE TABLE `modulos` (
   `modulo_id` int(11) NOT NULL AUTO_INCREMENT,

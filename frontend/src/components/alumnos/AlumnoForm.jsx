@@ -7,13 +7,22 @@ import { useAuth } from '../../context/AuthContext';
 const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    const { token } = useAuth();
    const [formData, setFormData] = useState({
+      usuario_id: '',
+      identificacion: '',
       nombre: '',
       email: '',
       telefono: '',
       pais_id: '',
    });
    const [paises, setPaises] = useState([]);
+   const [usuarios, setUsuarios] = useState([]);
    const [loading, setLoading] = useState(true);
+      const [error, setError] = useState('');
+      const [usuarioTieneAlumno, setUsuarioTieneAlumno] = useState(false);
+      const [alumnoExistente, setAlumnoExistente] = useState(null);
+
+   //Logs para depuración
+   console.log('AlumnoForm - alumno prop:', alumno);
 
    // Cargar países al iniciar
    useEffect(() => {
@@ -33,13 +42,32 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
          }
       };
 
+      const fetchUsuarios = async () => {
+         try {
+            const response = await fetch('http://localhost:3002/api/users', {
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            });
+            const data = await response.json();
+            setUsuarios(data);
+         } catch (error) {
+            console.error('Error al cargar usuarios:', error);
+         } finally {
+            setLoading(false);
+         }
+      };
+
       fetchPaises();
+      fetchUsuarios();
    }, [token]);
 
    // Inicializar el formulario cuando se recibe el alumno en la propiedad value (value={formData.nombre}) del formulario.
    useEffect(() => {
       if (alumno) {
          setFormData({
+            usuario_id: alumno.usuario_id || '',
+            identificacion: alumno.identificacion || '',
             nombre: alumno.nombre || '',
             email: alumno.email || '',
             telefono: alumno.telefono || '',
@@ -49,10 +77,64 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    }, [alumno]);
 
    const handleChange = (e) => {
-      setFormData({
-         ...formData,
-         [e.target.name]: e.target.value,
-      });
+      const { name, value } = e.target;
+
+      // Si se selecciona un usuario, cargar sus datos en el formulario
+         if (name === 'usuario_id') {
+         setFormData((prev) => {
+            // opción vacía: limpiar campos relacionados con el usuario
+            if (!value) {
+               return {
+                  ...prev,
+                  usuario_id: '',
+                  nombre: '',
+                  email: '',
+                  pais_id: '',
+               };
+            }
+
+            // buscar el usuario seleccionado en la lista ya cargada
+            const selected = usuarios.find((u) => String(u.usuario_id) === String(value));
+
+            if (!selected) {
+               // si por alguna razón no está (p. ej. aún cargando), solo setear id
+               return {
+                  ...prev,
+                  usuario_id: value,
+               };
+            }
+
+               // Verificar en backend si ese usuario ya tiene un alumno
+               (async () => {
+                  try {
+                     const resp = await fetch(`http://localhost:3002/api/alumnos/by-usuario/${selected.usuario_id}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                     });
+                     const json = await resp.json();
+                     setUsuarioTieneAlumno(Boolean(json.exists));
+                     setAlumnoExistente(json.alumno ?? null);
+                  } catch (err) {
+                     console.error('Error verificando alumno existente:', err);
+                     setUsuarioTieneAlumno(false);
+                     setAlumnoExistente(null);
+                  }
+               })();
+
+            // Volcar datos del usuario en el formulario (no borra otros campos)
+            return {
+               ...prev,
+               usuario_id: selected.usuario_id,
+               nombre: selected.nombre ?? prev.nombre,
+               email: selected.email ?? prev.email,
+               pais_id: selected.pais_id ?? prev.pais_id,
+            };
+         });
+
+         return;
+      }
+
+      // manejo normal para otros campos
+      setFormData((prev) => ({ ...prev, [name]: value }));
    };
 
    const handleSubmit = async (e) => {
@@ -74,15 +156,20 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             body: JSON.stringify(formData),
          });
 
-         if (!response.ok) {
-            throw new Error('Error al guardar el alumno');
-         }
+            const data = await response.json();
 
-         const data = await response.json();
-         onSubmit(data);
+            if (!response.ok) {
+               // Mostrar el mensaje que envía el backend si existe
+               setError(data.msg || data.error || 'Error al guardar el alumno');
+               return;
+            }
+
+            // Limpia error previo y devuelve la data al padre
+            setError('');
+            onSubmit(data);
       } catch (error) {
-         console.error('Error:', error);
-         // Aquí podrías mostrar un mensaje de error al usuario
+            console.error('Error:', error);
+            setError(error.message || 'Error al guardar el alumno');
       }
    };
 
@@ -97,10 +184,72 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
 
    return (
       <form onSubmit={handleSubmit} className='space-y-6'>
+         {/* Solo mostrar cuando se va a crear un usuario, no cuando se va a editar */}
+         {alumno ? null : (
+            <>
+               <label
+                  htmlFor='usuario_id'
+                  className='block text-sm font-medium text-gray-700'
+               >
+                  Usuario
+               </label>
+               <select
+                  id='usuario_id'
+                  name='usuario_id'
+                  value={formData.usuario_id}
+                  onChange={handleChange}
+                  required
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+               >
+                  <option value=''>Selecciona un usuario</option>
+                  {usuarios.map((usuario) => (
+                     <option
+                        key={usuario.usuario_id}
+                        value={usuario.usuario_id}
+                     >
+                        {usuario.nombre}
+                     </option>
+                  ))}
+               </select>
+            </>
+         )}
+
+         <div>
+            <label
+               htmlFor='identificacion'
+               className='block text-sm font-medium text-gray-700 mt-3'
+            >
+               Identificacion
+            </label>
+            <input
+               type='text'
+               name='identificacion'
+               id='identificacion'
+               value={formData.identificacion}
+               onChange={handleChange}
+               required
+               readOnly={!!alumno}
+               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  alumno
+                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                     : ''
+               }`}
+            />
+         </div>
+
+            {usuarioTieneAlumno && (
+               <div className='bg-yellow-50 border-l-4 border-yellow-400 p-4'>
+                  <p className='text-yellow-800'>
+                     Este usuario ya tiene un alumno asociado. No podrá crear un nuevo
+                     alumno para el mismo usuario.
+                  </p>
+               </div>
+            )}
+
          <div>
             <label
                htmlFor='nombre'
-               className='block text-sm font-medium text-gray-700'
+               className='block text-sm font-medium text-gray-700 mt-3'
             >
                Nombre
             </label>
@@ -111,7 +260,10 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                value={formData.nombre}
                onChange={handleChange}
                required
-               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                  readOnly={!!formData.usuario_id && !alumno}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     !!formData.usuario_id && !alumno ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed' : ''
+                  }`}
             />
          </div>
 
@@ -129,7 +281,10 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                value={formData.email}
                onChange={handleChange}
                required
-               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                  readOnly={!!formData.usuario_id && !alumno}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     !!formData.usuario_id && !alumno ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed' : ''
+                  }`}
             />
          </div>
 
@@ -183,7 +338,12 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             </button>
             <button
                type='submit'
-               className='inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+               disabled={usuarioTieneAlumno && !alumno}
+               className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                  usuarioTieneAlumno && !alumno
+                     ? 'bg-gray-400 cursor-not-allowed'
+                     : 'bg-indigo-600 hover:bg-indigo-700'
+               }`}
             >
                {alumno ? 'Actualizar' : 'Crear'}
             </button>

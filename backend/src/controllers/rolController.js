@@ -1,4 +1,6 @@
 const pool = require('../config/database');
+//Importar la función para obtener la fecha y hora actual
+const { obtenerFechaHoraActual } = require('../utils/funciones');
 
 const rolController = {
    // Obtener todos los roles
@@ -10,6 +12,8 @@ const rolController = {
 
          // Logs para depuración
          console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/rolController.js');
          console.log(
             'Consulta roles:',
             '\nSELECT rol_id, nombre_rol FROM roles ORDER BY nombre_rol'

@@ -30,6 +30,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
    // Definimos las rutas de navegación si el usuario es administrador
    const adminNavigation = [
       { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+      {
+         name: 'Usuarios',
+         href: '/dashboard/usuarios',
+         icon: UserIcon,
+      },
       { name: 'Alumnos', href: '/dashboard/alumnos', icon: UserGroupIcon },
       { name: 'Módulos', href: '/dashboard/modulos', icon: BookOpenIcon },
       {
@@ -44,11 +49,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
          current: pathname === '/dashboard/preguntas',
       },
       { name: 'Progreso', href: '/dashboard/progreso', icon: ChartBarIcon },
-      {
-         name: 'Usuarios',
-         href: '/dashboard/usuarios',
-         icon: UserIcon,
-      },
    ];
 
    // Definimos las rutas de navegación si el usuario es alumno

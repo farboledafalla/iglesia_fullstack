@@ -39,12 +39,12 @@ const DashboardRoutes = () => {
                   {/* Rutas del Dashboard de Admin */}
                   {/* El index se refiere a la ruta por defecto */}
                   <Route index element={<AdminDashboard />} />
+                  <Route path='usuarios' element={<Usuarios />} />
                   <Route path='alumnos' element={<Alumnos />} />
                   <Route path='modulos' element={<Modulos />} />
                   <Route path='lecciones' element={<Lecciones />} />
                   <Route path='preguntas' element={<Preguntas />} />
                   <Route path='progreso' element={<Progreso />} />
-                  <Route path='usuarios' element={<Usuarios />} />
                </>
             ) : (
                <>

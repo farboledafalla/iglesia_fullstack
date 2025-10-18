@@ -26,4 +26,21 @@ export const courseService = {
   updateCourse: (id, courseData) => api.put(`/courses/${id}`, courseData),
 };
 
+export const inscripcionesService = {
+  create: (data) => api.post('/inscripciones', data),
+  listByAlumno: (alumno_id) => api.get('/inscripciones', { params: { alumno_id } }),
+  update: (id, data) => api.patch(`/inscripciones/${id}`, data),
+};
+
+export const intentosService = {
+  startAttempt: (leccion_id, alumno_id) => api.post(`/intentos/lecciones/${leccion_id}`, { alumno_id }),
+  getAttempt: (attempt_id) => api.get(`/intentos/${attempt_id}`),
+  submitAttempt: (attempt_id, answers) => api.post(`/intentos/${attempt_id}/submit`, { answers }),
+};
+
+export const preguntasService = {
+  create: (data) => api.post('/preguntas', data),
+  get: (id) => api.get(`/preguntas/${id}`),
+};
+
 export default api; 

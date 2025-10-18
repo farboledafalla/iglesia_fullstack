@@ -1,14 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const preguntaController = require('../controllers/preguntaController');
 const auth = require('../middleware/auth');
+const preguntasController = require('../controllers/preguntasController');
 
-router.use(auth);
-
-router.get('/', preguntaController.getPreguntasPorLeccion);
-router.post('/', preguntaController.createPregunta);
-router.put('/:id', preguntaController.updatePregunta);
-router.put('/:id/toggle-estado', preguntaController.toggleEstado);
-router.get('/leccion/:leccionId', preguntaController.getPreguntasPorLeccion);
+router.post('/', auth, preguntasController.createQuestion);
+router.get('/:id', auth, preguntasController.getQuestion);
 
 module.exports = router;

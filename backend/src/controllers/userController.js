@@ -34,6 +34,89 @@ const userController = {
       }
    },
 
+   // Obtener los datos de las tarjetas de la parte superior (Total Usuarios, Usuarios Activos, Usuarios Inactivos y Total Paises)
+   getTotalUsuarios: async (req, res) => {
+      try {
+         // Obtener total de usuarios (activos/inactivos), esto se almacena en un array
+         const [result] = await pool.query(`
+            SELECT 
+               COUNT(*) as total,
+               SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,
+               SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos
+            FROM usuarios
+         `);
+
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/alumnoController.js');
+         console.log(
+            "Consulta total de usuarios: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos\n FROM usuarios",
+            result
+         );
+
+         // Obtener total de países con usuarios desde donde estudian los usuarios
+         const [paises] = await pool.query(`
+            SELECT COUNT(DISTINCT pais_id) as total_paises
+            FROM usuarios
+            WHERE pais_id IS NOT NULL
+         `);
+
+         //Logs para depuración
+         console.log('\n\n------------------------------------------------');
+         console.log(obtenerFechaHoraActual());
+         console.log('/controllers/userController.js');
+         console.log(
+            'Consulta total de países con usuarios: \nSELECT COUNT(DISTINCT pais_id) as total_paises\n FROM usuarios \n WHERE pais_id IS NOT NULL',
+            paises
+         );
+
+         // Enviar un objeto en la respuesta con la información obtenida
+         res.json({
+            total: result[0].total || 0,
+            activos: result[0].activos || 0,
+            inactivos: result[0].inactivos || 0,
+            total_paises: paises[0].total_paises || 0,
+         });
+      } catch (error) {
+         console.error('Error al obtener total de usuarios:', error);
+         res.status(500).json({
+            msg: 'Error al obtener total de usuarios y países',
+            error: error.message,
+         });
+      }
+   },
+
+   // Obtener distribución de usuarios por país, esta ruta es para pintar el grafico de barras de usuarios por país
+   getUsuariosPorPais: async (req, res) => {
+      try {
+         const [result] = await pool.query(`
+            SELECT 
+               p.nombre_pais as pais,
+               COUNT(u.usuario_id) as cantidad
+            FROM usuarios u
+            INNER JOIN paises p ON u.pais_id = p.pais_id
+            GROUP BY p.pais_id, p.nombre_pais
+            ORDER BY cantidad DESC
+         `);
+
+         // Asegurarnos de que la respuesta sea un array, si no es un array, lo convertimos a un array vacío porque si no es un array, el front no lo puede leer
+         if (!Array.isArray(result)) {
+            console.log('Resultado no es un array:', result);
+            res.json([]);
+            return;
+         }
+
+         // Enviar la respuesta
+         res.json(result);
+      } catch (error) {
+         console.error('Error al obtener distribución por país:', error);
+         res.status(500).json({
+            msg: 'Error al obtener distribución por país',
+            error: error.message,
+         });
+      }
+   },
+
    // Obtener usuario por ID
    getUserById: async (req, res) => {
       try {
@@ -257,34 +340,6 @@ const userController = {
                ELSE 'ACTIVO'
                END
                WHERE usuario_id = ${id}`
-         );
-
-         // También actualizamos el estado en la tabla alumnos si es un alumno
-         const alumnoQuery = `
-         UPDATE alumnos
-         SET estado = (
-            SELECT estado 
-            FROM usuarios 
-            WHERE usuario_id = ?
-            )
-            WHERE usuario_id = ?
-            `;
-
-         await pool.query(alumnoQuery, [id, id]);
-
-         // Logs para depuración
-         console.log('\n\n------------------------------------------------');
-         console.log(obtenerFechaHoraActual());
-         console.log('/controllers/userController.js');
-         console.log(
-            'Cambio de estado del alumno:',
-            `\nUPDATE alumnos
-               SET estado = (
-                  SELECT estado 
-                  FROM usuarios 
-                  WHERE usuario_id = ${id}
-               )
-            WHERE usuario_id = ${id}`
          );
 
          res.json({

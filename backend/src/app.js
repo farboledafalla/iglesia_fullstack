@@ -10,19 +10,18 @@ const cors = require('cors');
 //Incluir las rutas desde donde se llaman los diferentes controladores
 //Ruta para la conexión a la bd, desde aquí se conecta la bd
 const authRoutes = require('./routes/auth');
-const courseRoutes = require('./routes/courses');
 const userRoutes = require('./routes/users');
-// Rutas para paises
+const alumnosRoutes = require('./routes/alumnos');
 const paisesRoutes = require('./routes/paises');
 const continentesRoutes = require('./routes/continentes');
-// Rutas para alumnos
-const alumnosRoutes = require('./routes/alumnos');
+const rolesRoutes = require('./routes/roles');
+
+const courseRoutes = require('./routes/courses');
 const modulosRoutes = require('./routes/modulos');
-const instructoresRoutes = require('./routes/instructores');
 const leccionesRoutes = require('./routes/lecciones');
 const preguntasRouter = require('./routes/preguntas');
 const progresoAlumnosRouter = require('./routes/progreso-alumnos');
-const rolesRoutes = require('./routes/roles');
+//const instructoresRoutes = require('./routes/instructores');
 
 // Importar función obtenerFechaHoraActual
 const { obtenerFechaHoraActual } = require('./utils/funciones');
@@ -38,19 +37,18 @@ app.use(express.json());
 //Se le pasa la ruta y el controlador que se va a ejecutar
 //Ruta para la conexión a la bd, desde aquí se conecta la bd
 app.use('/api/auth', authRoutes);
-app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
-// Rutas para paises
+app.use('/api/alumnos', alumnosRoutes);
 app.use('/api/paises', paisesRoutes);
 app.use('/api/continentes', continentesRoutes);
-// Rutas para alumnos
-app.use('/api/alumnos', alumnosRoutes);
+app.use('/api/roles', rolesRoutes);
+
+app.use('/api/courses', courseRoutes);
 app.use('/api/modulos', modulosRoutes);
-app.use('/api/instructores', instructoresRoutes);
 app.use('/api/lecciones', leccionesRoutes);
 app.use('/api/preguntas', preguntasRouter);
 app.use('/api/progreso-alumnos', progresoAlumnosRouter);
-app.use('/api/roles', rolesRoutes);
+//app.use('/api/instructores', instructoresRoutes);
 
 // Puerto
 const PORT = process.env.PORT || 3001;

@@ -109,7 +109,7 @@ const Alumnos = () => {
       setSelectedAlumno(null);
    };
 
-   if (loading) return <div>Cargando...</div>;
+     if (loading) return <div>Cargando...</div>;
 
    return (
       <div className='px-4 sm:px-6 lg:px-8'>
@@ -149,12 +149,6 @@ const Alumnos = () => {
                                  scope='col'
                                  className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 Estado
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
-                              >
                                  Acciones
                               </th>
                            </tr>
@@ -164,17 +158,6 @@ const Alumnos = () => {
                               <tr key={alumno.alumno_id}>
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.nombre}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
-                                    <span
-                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                          alumno.estado === 'ACTIVO'
-                                             ? 'bg-green-100 text-green-800'
-                                             : 'bg-orange-200 text-red-800'
-                                       }`}
-                                    >
-                                       {alumno.estado}
-                                    </span>
                                  </td>
                                  <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-col justify-center'>
                                     <button
@@ -225,12 +208,6 @@ const Alumnos = () => {
                                  scope='col'
                                  className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 Estado
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
-                              >
                                  Acciones
                               </th>
                            </tr>
@@ -240,17 +217,6 @@ const Alumnos = () => {
                               <tr key={alumno.alumno_id}>
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.nombre}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
-                                    <span
-                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                          alumno.estado === 'ACTIVO'
-                                             ? 'bg-green-100 text-green-800'
-                                             : 'bg-orange-200 text-red-800'
-                                       }`}
-                                    >
-                                       {alumno.estado}
-                                    </span>
                                  </td>
                                  <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-col justify-center'>
                                     <button
@@ -307,12 +273,6 @@ const Alumnos = () => {
                                  scope='col'
                                  className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 Estado
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
-                              >
                                  Acciones
                               </th>
                            </tr>
@@ -325,17 +285,6 @@ const Alumnos = () => {
                                  </td>
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.email}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
-                                    <span
-                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                          alumno.estado === 'ACTIVO'
-                                             ? 'bg-green-100 text-green-800'
-                                             : 'bg-orange-200 text-red-800'
-                                       }`}
-                                    >
-                                       {alumno.estado}
-                                    </span>
                                  </td>
                                  <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-row justify-center'>
                                     <button
@@ -380,6 +329,12 @@ const Alumnos = () => {
                                  scope='col'
                                  className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
                               >
+                                 Identificación
+                              </th>
+                              <th
+                                 scope='col'
+                                 className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                              >
                                  Nombre
                               </th>
                               <th
@@ -404,12 +359,6 @@ const Alumnos = () => {
                                  scope='col'
                                  className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
                               >
-                                 Estado
-                              </th>
-                              <th
-                                 scope='col'
-                                 className='px-3 py-3.5 text-center text-sm font-semibold text-gray-900'
-                              >
                                  Acciones
                               </th>
                            </tr>
@@ -417,6 +366,9 @@ const Alumnos = () => {
                         <tbody className='divide-y divide-gray-200 bg-white'>
                            {alumnos.map((alumno) => (
                               <tr key={alumno.alumno_id}>
+                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                                    {alumno.identificacion}
+                                 </td>
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.nombre}
                                  </td>
@@ -428,17 +380,6 @@ const Alumnos = () => {
                                  </td>
                                  <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                                     {alumno.nombre_pais}
-                                 </td>
-                                 <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-center'>
-                                    <span
-                                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                          alumno.estado === 'ACTIVO'
-                                             ? 'bg-green-100 text-green-800'
-                                             : 'bg-orange-200 text-red-800'
-                                       }`}
-                                    >
-                                       {alumno.estado}
-                                    </span>
                                  </td>
                                  <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex flex-row justify-center'>
                                     <button
@@ -453,20 +394,6 @@ const Alumnos = () => {
                                        className='text-indigo-600 hover:text-indigo-900 mr-4'
                                     >
                                        Editar
-                                    </button>
-                                    <button
-                                       onClick={() =>
-                                          handleToggleEstado(alumno)
-                                       }
-                                       className={`${
-                                          alumno.estado === 'ACTIVO'
-                                             ? 'text-orange-400 hover:text-red-900'
-                                             : 'text-green-600 hover:text-green-900'
-                                       } mr-4 w-16`}
-                                    >
-                                       {alumno.estado === 'ACTIVO'
-                                          ? 'Desactivar'
-                                          : 'Activar'}
                                     </button>
                                     <button
                                        onClick={() => handleDeleteClick(alumno)}

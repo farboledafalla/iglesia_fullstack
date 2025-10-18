@@ -12,17 +12,16 @@ const alumnoController = {
             SELECT 
                a.alumno_id,
                a.identificacion,
-               a.nombre,
-               a.email,
+               u.nombre AS nombre,
+               u.email AS email,
                a.telefono,
-               a.pais_id,
+               u.pais_id AS pais_id,
                p.nombre_pais,
-               a.fecha_registro,
-               a.estado,
                a.usuario_id
             FROM alumnos a
-            LEFT JOIN paises p ON a.pais_id = p.pais_id
-            ORDER BY a.nombre
+            JOIN usuarios u ON a.usuario_id = u.usuario_id
+            LEFT JOIN paises p ON u.pais_id = p.pais_id
+            ORDER BY u.nombre
          `;
 
          console.log('\n\n------------------------------------------------');
@@ -48,18 +47,17 @@ const alumnoController = {
       console.log('Datos recibidos para crear alumno:', req.body);
 
       try {
-         const { nombre, email, telefono, pais_id, usuario_id, identificacion } = req.body;
-
-         //Validar la existencia del usuario_id en la tabla usuarios
-         const [usuarios] = await pool.query(
-            'SELECT usuario_id FROM usuarios WHERE usuario_id = ?',
-            [usuario_id]
-         );
+         const { telefono, usuario_id, identificacion } = req.body;
 
          // Verificar si ese usuario ya tiene un alumno asociado
-         const [existingAlumno] = await pool.query('SELECT alumno_id FROM alumnos WHERE usuario_id = ?', [usuario_id]);
+         const [existingAlumno] = await pool.query(
+            'SELECT alumno_id FROM alumnos WHERE usuario_id = ?',
+            [usuario_id]
+         );
          if (existingAlumno.length > 0) {
-            return res.status(400).json({ msg: 'El usuario ya tiene un alumno asociado' });
+            return res
+               .status(400)
+               .json({ msg: 'El usuario ya tiene un alumno asociado' });
          }
 
          //Logs para depuración
@@ -68,37 +66,28 @@ const alumnoController = {
          console.log('/controllers/alumnoController.js');
          console.log(
             'Verificación de usuario_id:',
-            'SELECT usuario_id FROM usuarios WHERE usuario_id = ?',
+            'SELECT alumno_id FROM alumnos WHERE usuario_id = ?',
             [usuario_id]
          );
-         console.log('Resultado de la verificación:', usuarios);
+         console.log('Resultado de la verificación:', existingAlumno);
 
          const query = `
-            INSERT INTO alumnos (identificacion, nombre, email, telefono, pais_id, usuario_id)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO alumnos (identificacion, telefono, usuario_id)
+            VALUES (?, ?, ?)
          `;
 
          // Si no se envía identificacion, usar cadena vacía para evitar error de campo sin default
          const ident = identificacion ?? '';
 
-         const result = await pool.query(query, [
-            ident,
-            nombre,
-            email,
-            telefono,
-            pais_id,
-            usuario_id,
-         ]);
+         const result = await pool.query(query, [ident, telefono, usuario_id]);
 
          //Logs para depuración
          console.log('\n\n------------------------------------------------');
          console.log(obtenerFechaHoraActual());
          console.log('/controllers/alumnoController.js');
          console.log('Consulta para crear alumno:', query, [
-            nombre,
-            email,
+            ident,
             telefono,
-            pais_id,
             usuario_id,
          ]);
          console.log('Alumno creado con ID:', result.insertId);
@@ -117,7 +106,7 @@ const alumnoController = {
    updateAlumno: async (req, res) => {
       try {
          const { id } = req.params;
-         const { nombre, email, telefono, pais_id } = req.body;
+         const { telefono, identificacion } = req.body;
 
          // Primero verificamos si el alumno existe
          const [alumno] = await pool.query(
@@ -144,43 +133,19 @@ const alumnoController = {
 
          const query = `
             UPDATE alumnos
-            SET nombre = ?, 
-                email = ?, 
-                telefono = ?, 
-                pais_id = ?
+            SET identificacion = ?,
+                telefono = ?
             WHERE alumno_id = ?
          `;
 
-         await pool.query(query, [nombre, email, telefono, pais_id, id]);
+         await pool.query(query, [identificacion, telefono, id]);
 
          //Logs para depuración
          console.log('\n\n------------------------------------------------');
          console.log(obtenerFechaHoraActual());
          console.log('/controllers/alumnoController.js');
          console.log('Consulta para actualizar alumno:', query);
-         console.log('Valores: ', [nombre, email, telefono, pais_id, id]);
-
-         // También actualizamos la tabla usuarios si existe el registro
-         const userQuery = `
-            UPDATE usuarios
-            SET nombre = ?,
-                email = ?,
-                pais_id = ?
-            WHERE usuario_id = (
-               SELECT usuario_id 
-               FROM alumnos 
-               WHERE alumno_id = ?
-            )
-         `;
-
-         await pool.query(userQuery, [nombre, email, pais_id, id]);
-
-         //Logs para depuración
-         console.log('\n\n------------------------------------------------');
-         console.log(obtenerFechaHoraActual());
-         console.log('/controllers/alumnoController.js');
-         console.log('Consulta para actualizar usuario:', userQuery);
-         console.log('Valores: ', [nombre, email, pais_id, id]);
+         console.log('Valores: ', [identificacion, telefono, id]);
 
          res.json({
             msg: 'Alumno actualizado exitosamente',
@@ -220,48 +185,6 @@ const alumnoController = {
       } catch (error) {
          console.error(error);
          res.status(500).json({ msg: 'Error al actualizar estado del alumno' });
-      }
-   },
-
-   // Obtener los datos de las tarjetas de la parte superior (Total Alumnos, Alumnos Activos, Alumnos Inactivos y Total Paises)
-   getTotalAlumnos: async (req, res) => {
-      try {
-         // Obtener total de alumnos (activos/inactivos), esto se almacena en un array
-         const [result] = await pool.query(`
-            SELECT 
-               COUNT(*) as total,
-               SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,
-               SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos
-            FROM alumnos
-         `);
-
-         console.log('\n\n------------------------------------------------');
-         console.log(obtenerFechaHoraActual());
-         console.log('/controllers/alumnoController.js');
-         console.log(
-            "Consulta total de alumnos: \nSELECT COUNT(*) as total,\n SUM(CASE WHEN estado = 'ACTIVO' THEN 1 ELSE 0 END) as activos,\n SUM(CASE WHEN estado = 'INACTIVO' THEN 1 ELSE 0 END) as inactivos\n FROM alumnos"
-         );
-
-         // Obtener total de países con alumnos desde donde estudian los alumnos
-         const [paises] = await pool.query(`
-            SELECT COUNT(DISTINCT pais_id) as total_paises
-            FROM alumnos
-            WHERE pais_id IS NOT NULL
-         `);
-
-         // Enviar un objeto en la respuesta con la información obtenida
-         res.json({
-            total: result[0].total || 0,
-            activos: result[0].activos || 0,
-            inactivos: result[0].inactivos || 0,
-            total_paises: paises[0].total_paises || 0,
-         });
-      } catch (error) {
-         console.error('Error al obtener total de alumnos:', error);
-         res.status(500).json({
-            msg: 'Error al obtener total de alumnos y países',
-            error: error.message,
-         });
       }
    },
 
@@ -307,7 +230,8 @@ const alumnoController = {
                p.nombre_pais as pais,
                COUNT(a.alumno_id) as cantidad
             FROM alumnos a
-            INNER JOIN paises p ON a.pais_id = p.pais_id
+            JOIN usuarios u ON a.usuario_id = u.usuario_id
+            INNER JOIN paises p ON u.pais_id = p.pais_id
             GROUP BY p.pais_id, p.nombre_pais
             ORDER BY cantidad DESC
          `);
@@ -396,20 +320,23 @@ const alumnoController = {
       }
    },
 
-      // Obtener alumno por usuario_id (para verificar si un usuario ya tiene alumno)
-      getByUsuarioId: async (req, res) => {
-         try {
-            const { usuario_id } = req.params;
-            const [rows] = await pool.query('SELECT * FROM alumnos WHERE usuario_id = ?', [usuario_id]);
-            if (rows.length === 0) {
-               return res.json({ exists: false });
-            }
-            res.json({ exists: true, alumno: rows[0] });
-         } catch (error) {
-            console.error('Error getByUsuarioId:', error);
-            res.status(500).json({ msg: 'Error del servidor' });
+   // Obtener alumno por usuario_id (para verificar si un usuario ya tiene alumno)
+   getByUsuarioId: async (req, res) => {
+      try {
+         const { usuario_id } = req.params;
+         const [rows] = await pool.query(
+            'SELECT * FROM alumnos WHERE usuario_id = ?',
+            [usuario_id]
+         );
+         if (rows.length === 0) {
+            return res.json({ exists: false });
          }
-      },
+         res.json({ exists: true, alumno: rows[0] });
+      } catch (error) {
+         console.error('Error getByUsuarioId:', error);
+         res.status(500).json({ msg: 'Error del servidor' });
+      }
+   },
 
    // Comentar o eliminar este método si no se usará por ahora
    /*

@@ -47,7 +47,7 @@ const AdminDashboard = () => {
          try {
             // Obtener los datos de las tarjetas de la parte superior (Total Alumnos, Alumnos Activos, Alumnos Inactivos y Total Paises)
             const totalResponse = await fetch(
-               'http://localhost:3002/api/alumnos/total',
+               'http://localhost:3002/api/users/total',
                {
                   headers: {
                      Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
 
             // Obtener alumnos por país, aquí se espera un array con objetos que contienen el nombre del país y la cantidad de alumnos
             const paisesResponse = await fetch(
-               'http://localhost:3002/api/alumnos/por-pais',
+               'http://localhost:3002/api/users/por-pais',
                {
                   headers: {
                      Authorization: `Bearer ${token}`,
@@ -134,10 +134,14 @@ const AdminDashboard = () => {
    return (
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
          {/* Tarjetas de Resumen */}
+         <div className='sm:flex-auto mb-4'>
+            <h1 className='text-2xl font-semibold text-gray-900'>Usuarios</h1>
+         </div>
+
          <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
             <div className='bg-white rounded-lg shadow p-6'>
                <h3 className='text-lg font-medium text-gray-900'>
-                  Total Alumnos
+                  Total Usuarios
                </h3>
                <p className='mt-2 text-3xl font-bold text-indigo-600'>
                   {estadisticas.total}
@@ -145,7 +149,7 @@ const AdminDashboard = () => {
             </div>
             <div className='bg-white rounded-lg shadow p-6'>
                <h3 className='text-lg font-medium text-gray-900'>
-                  Alumnos Activos
+                  Usuarios Activos
                </h3>
                <p className='mt-2 text-3xl font-bold text-green-600'>
                   {estadisticas.activos}
@@ -153,7 +157,7 @@ const AdminDashboard = () => {
             </div>
             <div className='bg-white rounded-lg shadow p-6'>
                <h3 className='text-lg font-medium text-gray-900'>
-                  Alumnos Inactivos
+                  Usuarios Inactivos
                </h3>
                <p className='mt-2 text-3xl font-bold text-red-600'>
                   {estadisticas.inactivos}
@@ -173,7 +177,9 @@ const AdminDashboard = () => {
          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             {/* Gráfico de Estado de Alumnos */}
             <div className='bg-white rounded-lg shadow p-6'>
-               <h2 className='text-xl font-semibold mb-4'>Estado de Alumnos</h2>
+               <h2 className='text-xl font-semibold mb-4'>
+                  Estado de Usuarios
+               </h2>
                <div className='h-80'>
                   <ResponsiveContainer width='100%' height='100%'>
                      <PieChart>
@@ -205,7 +211,7 @@ const AdminDashboard = () => {
 
             {/* Gráfico de Alumnos por País */}
             <div className='bg-white rounded-lg shadow p-6'>
-               <h2 className='text-xl font-semibold mb-4'>Alumnos por País</h2>
+               <h2 className='text-xl font-semibold mb-4'>Usuarios por País</h2>
                <div className='h-80'>
                   <ResponsiveContainer width='100%' height='100%'>
                      <BarChart

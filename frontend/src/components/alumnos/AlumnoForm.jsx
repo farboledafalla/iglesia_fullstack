@@ -1,7 +1,8 @@
 //AlumnoForm.jsx: este script define el formulario para crear y editar usuarios.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { use } from 'react';
 
 //Las 3 propiedades que recibe el componente son:  alumno, onSubmit y onCancel. alumno es el alumno que se va a editar, onSubmit es una función que se ejecuta cuando se guarda el alumno y onCancel es una función que se ejecuta cuando se cancela la edición o creación del alumno.
 const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
@@ -17,12 +18,33 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    const [paises, setPaises] = useState([]);
    const [usuarios, setUsuarios] = useState([]);
    const [loading, setLoading] = useState(true);
-      const [error, setError] = useState('');
-      const [usuarioTieneAlumno, setUsuarioTieneAlumno] = useState(false);
-      const [alumnoExistente, setAlumnoExistente] = useState(null);
+   const [error, setError] = useState('');
+   const [usuarioTieneAlumno, setUsuarioTieneAlumno] = useState(false);
+   const [alumnoExistente, setAlumnoExistente] = useState(null);
+   const [identificacionSoloLectura, setIdentificacionSoloLectura] =
+      useState(false);
+   const [nombreSoloLectura, setNombreSoloLectura] = useState(false);
+   const [emailSoloLectura, setEmailSoloLectura] = useState(false);
+   const [telefonoSoloLectura, setTelefonoSoloLectura] = useState(false);
+   const [paisSoloLectura, setPaisSoloLectura] = useState(false);
+   const [botonCrearSoloLectura, setBotonCrearSoloLectura] = useState(false);
+
+   const inputIdentificacionRef = useRef(null);
+   const inputTelefonoRef = useRef(null);
+   const inputNombreRef = useRef(null);
 
    //Logs para depuración
    console.log('AlumnoForm - alumno prop:', alumno);
+
+   useEffect(() => {
+      //Cambia valor de soloLectura al cargar el componente
+      setIdentificacionSoloLectura(true);
+      setNombreSoloLectura(true);
+      setEmailSoloLectura(true);
+      setTelefonoSoloLectura(true);
+      setPaisSoloLectura(true);
+      setBotonCrearSoloLectura(true);
+   }, []);
 
    // Cargar países al iniciar
    useEffect(() => {
@@ -73,6 +95,15 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             telefono: alumno.telefono || '',
             pais_id: alumno.pais_id || '', // Usar el pais_id del alumno
          });
+
+         // Esperar un poco para superar la animación del modal y asegurar que el input esté montado
+         setTimeout(() => {
+            try {
+               inputTelefonoRef.current?.focus();
+            } catch (e) {
+               // ignore
+            }
+         }, 50);
       }
    }, [alumno]);
 
@@ -80,7 +111,7 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
       const { name, value } = e.target;
 
       // Si se selecciona un usuario, cargar sus datos en el formulario
-         if (name === 'usuario_id') {
+      if (name === 'usuario_id') {
          setFormData((prev) => {
             // opción vacía: limpiar campos relacionados con el usuario
             if (!value) {
@@ -94,7 +125,9 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             }
 
             // buscar el usuario seleccionado en la lista ya cargada
-            const selected = usuarios.find((u) => String(u.usuario_id) === String(value));
+            const selected = usuarios.find(
+               (u) => String(u.usuario_id) === String(value)
+            );
 
             if (!selected) {
                // si por alguna razón no está (p. ej. aún cargando), solo setear id
@@ -104,21 +137,24 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                };
             }
 
-               // Verificar en backend si ese usuario ya tiene un alumno
-               (async () => {
-                  try {
-                     const resp = await fetch(`http://localhost:3002/api/alumnos/by-usuario/${selected.usuario_id}`, {
+            // Verificar en backend si ese usuario ya tiene un alumno
+            (async () => {
+               try {
+                  const resp = await fetch(
+                     `http://localhost:3002/api/alumnos/by-usuario/${selected.usuario_id}`,
+                     {
                         headers: { Authorization: `Bearer ${token}` },
-                     });
-                     const json = await resp.json();
-                     setUsuarioTieneAlumno(Boolean(json.exists));
-                     setAlumnoExistente(json.alumno ?? null);
-                  } catch (err) {
-                     console.error('Error verificando alumno existente:', err);
-                     setUsuarioTieneAlumno(false);
-                     setAlumnoExistente(null);
-                  }
-               })();
+                     }
+                  );
+                  const json = await resp.json();
+                  setUsuarioTieneAlumno(Boolean(json.exists));
+                  setAlumnoExistente(json.alumno ?? null);
+               } catch (err) {
+                  console.error('Error verificando alumno existente:', err);
+                  setUsuarioTieneAlumno(false);
+                  setAlumnoExistente(null);
+               }
+            })();
 
             // Volcar datos del usuario en el formulario (no borra otros campos)
             return {
@@ -129,6 +165,13 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                pais_id: selected.pais_id ?? prev.pais_id,
             };
          });
+
+         //Volver valor a false para poder editar campos nuevamente
+         setIdentificacionSoloLectura(false);
+         setTelefonoSoloLectura(false);
+         setBotonCrearSoloLectura(false);
+
+         inputIdentificacionRef.current.focus();
 
          return;
       }
@@ -146,6 +189,11 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             : 'http://localhost:3002/api/alumnos';
 
          const method = alumno ? 'PUT' : 'POST';
+         const payload = {
+            usuario_id: formData.usuario_id,
+            identificacion: formData.identificacion,
+            telefono: formData.telefono,
+         };
 
          const response = await fetch(url, {
             method: method,
@@ -153,23 +201,23 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                'Content-Type': 'application/json',
                Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(payload),
          });
 
-            const data = await response.json();
+         const data = await response.json();
 
-            if (!response.ok) {
-               // Mostrar el mensaje que envía el backend si existe
-               setError(data.msg || data.error || 'Error al guardar el alumno');
-               return;
-            }
+         if (!response.ok) {
+            // Mostrar el mensaje que envía el backend si existe
+            setError(data.msg || data.error || 'Error al guardar el alumno');
+            return;
+         }
 
-            // Limpia error previo y devuelve la data al padre
-            setError('');
-            onSubmit(data);
+         // Limpia error previo y devuelve la data al padre
+         setError('');
+         onSubmit(data);
       } catch (error) {
-            console.error('Error:', error);
-            setError(error.message || 'Error al guardar el alumno');
+         console.error('Error:', error);
+         setError(error.message || 'Error al guardar el alumno');
       }
    };
 
@@ -182,9 +230,25 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
       );
    }
 
+   // Función para manejar el evento de tecla en el primer input (identificación)
+   const handleIdentificacionKeyDown = (e) => {
+      if (e.key === 'Tab') {
+         e.preventDefault(); // Evitar el tabulador normal
+         inputTelefonoRef.current.focus(); // Mover el foco al segundo input
+      }
+   };
+
+   // Función para manejar el evento de tecla en el botón crear/actualizar
+   const handleSubmitButtonKeyDown = (e) => {
+      if (e.key === 'Tab') {
+         e.preventDefault(); // Evitar el tabulador normal
+         inputIdentificacionRef.current.focus(); // Mover el foco al primer input
+      }
+   };
+
    return (
       <form onSubmit={handleSubmit} className='space-y-6'>
-         {/* Solo mostrar cuando se va a crear un usuario, no cuando se va a editar */}
+         {/* (Listado de usuarios) Crear un alumno */}
          {alumno ? null : (
             <>
                <label
@@ -223,6 +287,7 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             </div>
          )}
 
+         {/* (identificacion) Editar alumno */}
          <div>
             <label
                htmlFor='identificacion'
@@ -234,63 +299,96 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                type='text'
                name='identificacion'
                id='identificacion'
+               ref={inputIdentificacionRef}
                value={formData.identificacion}
+               onKeyDown={handleIdentificacionKeyDown}
                onChange={handleChange}
                required
-               readOnly={!!alumno}
+               readOnly={!!identificacionSoloLectura}
                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                  alumno
+                  identificacionSoloLectura
                      ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
                      : ''
                }`}
             />
          </div>
 
-         <div>
-            <label
-               htmlFor='nombre'
-               className='block text-sm font-medium text-gray-700 mt-3'
-            >
-               Nombre
-            </label>
-            <input
-               type='text'
-               name='nombre'
-               id='nombre'
-               value={formData.nombre}
-               onChange={handleChange}
-               required
-               readOnly={!!formData.usuario_id && !alumno}
-               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                  !!formData.usuario_id && !alumno
-                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
-                     : ''
-               }`}
-            />
-         </div>
+         {/* (nombre) Editar alumno */}
+         {!!formData.usuario_id && alumno ? (
+            <div>
+               <label
+                  htmlFor='nombre'
+                  className='block text-sm font-medium text-gray-700 mt-3'
+               >
+                  Nombre
+               </label>
+               <input
+                  type='text'
+                  name='nombre'
+                  id='nombre'
+                  ref={inputNombreRef}
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                  readOnly={!!formData.usuario_id && alumno}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     !!formData.usuario_id && alumno
+                        ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                        : ''
+                  }`}
+               />
+            </div>
+         ) : (
+            <div>
+               <label
+                  htmlFor='nombre'
+                  className='block text-sm font-medium text-gray-700 mt-3'
+               >
+                  Nombre
+               </label>
+               <input
+                  type='text'
+                  name='nombre'
+                  id='nombre'
+                  ref={inputNombreRef}
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                  readOnly={nombreSoloLectura}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     nombreSoloLectura
+                        ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                        : ''
+                  }`}
+               />
+            </div>
+         )}
 
-         <div>
-            <label
-               htmlFor='email'
-               className='block text-sm font-medium text-gray-700'
-            >
-               Email
-            </label>
-            <input
-               type='email'
-               name='email'
-               id='email'
-               value={formData.email}
-               onChange={handleChange}
-               required
-               readOnly={!!formData.usuario_id && !alumno}
-               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
-                  !!formData.usuario_id && !alumno
-                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
-                     : ''
-               }`}
-            />
-         </div>
+         {/* Cuando se va a editar un alumno */}
+         {alumno ? null : (
+            <div>
+               <label
+                  htmlFor='email'
+                  className='block text-sm font-medium text-gray-700'
+               >
+                  Email
+               </label>
+               <input
+                  type='email'
+                  name='email'
+                  id='email'
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  readOnly={emailSoloLectura}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     emailSoloLectura
+                        ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                        : ''
+                  }`}
+               />
+            </div>
+         )}
 
          <div>
             <label
@@ -304,33 +402,46 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
                name='telefono'
                id='telefono'
                value={formData.telefono}
+               ref={inputTelefonoRef}
+               readOnly={telefonoSoloLectura}
                onChange={handleChange}
-               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+               className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  telefonoSoloLectura
+                     ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                     : ''
+               }`}
             />
          </div>
 
-         <div>
-            <label
-               htmlFor='pais_id'
-               className='block text-sm font-medium text-gray-700'
-            >
-               País
-            </label>
-            <select
-               id='pais_id'
-               name='pais_id'
-               value={formData.pais_id}
-               onChange={handleChange}
-               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-            >
-               <option value=''>Seleccione un país</option>
-               {paises.map((pais) => (
-                  <option key={pais.pais_id} value={pais.pais_id}>
-                     {pais.nombre_pais}
-                  </option>
-               ))}
-            </select>
-         </div>
+         {alumno ? null : (
+            <div>
+               <label
+                  htmlFor='pais_id'
+                  className='block text-sm font-medium text-gray-700'
+               >
+                  País
+               </label>
+               <select
+                  id='pais_id'
+                  name='pais_id'
+                  value={formData.pais_id}
+                  disabled={paisSoloLectura}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                     paisSoloLectura
+                        ? 'bg-gray-100 focus:border-gray-300 focus:ring-gray-300 text-gray-600 cursor-not-allowed'
+                        : ''
+                  }`}
+               >
+                  <option value=''>Seleccione un país</option>
+                  {paises.map((pais) => (
+                     <option key={pais.pais_id} value={pais.pais_id}>
+                        {pais.nombre_pais}
+                     </option>
+                  ))}
+               </select>
+            </div>
+         )}
 
          <div className='flex justify-end space-x-3 pt-4'>
             <button
@@ -342,9 +453,10 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
             </button>
             <button
                type='submit'
-               disabled={usuarioTieneAlumno && !alumno}
+               disabled={botonCrearSoloLectura}
+               onKeyDown={handleSubmitButtonKeyDown}
                className={`inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                  usuarioTieneAlumno && !alumno
+                  botonCrearSoloLectura
                      ? 'bg-gray-400 cursor-not-allowed'
                      : 'bg-indigo-600 hover:bg-indigo-700'
                }`}

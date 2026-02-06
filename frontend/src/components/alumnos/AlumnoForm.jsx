@@ -37,13 +37,15 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
    console.log('AlumnoForm - alumno prop:', alumno);
 
    useEffect(() => {
-      //Cambia valor de soloLectura al cargar el componente
-      setIdentificacionSoloLectura(true);
-      setNombreSoloLectura(true);
-      setEmailSoloLectura(true);
-      setTelefonoSoloLectura(true);
-      setPaisSoloLectura(true);
-      setBotonCrearSoloLectura(true);
+      if (!alumno) {
+         //Cambia valor de soloLectura al cargar el componente
+         setIdentificacionSoloLectura(true);
+         setNombreSoloLectura(true);
+         setEmailSoloLectura(true);
+         setTelefonoSoloLectura(true);
+         setPaisSoloLectura(true);
+         setBotonCrearSoloLectura(true);
+      }
    }, []);
 
    // Cargar países al iniciar
@@ -215,6 +217,10 @@ const AlumnoForm = ({ alumno, onSubmit, onCancel }) => {
          // Limpia error previo y devuelve la data al padre
          setError('');
          onSubmit(data);
+
+         //Volver valor a false para poder editar campos nuevamente
+         setTelefonoSoloLectura(false);
+         setBotonCrearSoloLectura(false);
       } catch (error) {
          console.error('Error:', error);
          setError(error.message || 'Error al guardar el alumno');

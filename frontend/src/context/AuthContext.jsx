@@ -1,5 +1,7 @@
 // AuthContext.jsx: este script se encarga de manejar el estado de autenticación de la aplicación.
 import React, { createContext, useContext, useState, useEffect } from 'react';
+//
+import { API_URL } from './../config/env';
 
 // Crear el contexto
 const AuthContext = createContext();
@@ -11,6 +13,8 @@ export const AuthProvider = ({ children }) => {
    const [token, setToken] = useState(null);
    // Estado para el loading y se establece en true al iniciar como indicador de carga
    const [loading, setLoading] = useState(true);
+   // Para que cada componente NO tendría que validar
+   const isAuthenticated = !!token;
 
    // Cargar datos de autenticación al iniciar
    useEffect(() => {
@@ -30,8 +34,9 @@ export const AuthProvider = ({ children }) => {
    // Función para manejar el login, recibe email y password desde el componente Login para luego enviar al backend
    const login = async (email, password) => {
       try {
-         // Petición tipo POST a la API de autenticación
-         const response = await fetch('http://localhost:3002/api/auth/login', {
+         // Petición tipo POST a la API de autenticación: esto se debe cambiar por variables de entorno (url)
+         // const response = await fetch('http://localhost:3002/api/auth/login', {
+         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',
@@ -42,7 +47,7 @@ export const AuthProvider = ({ children }) => {
          // Parsear la respuesta una sola vez
          const data = await response.json();
 
-         // Si la respuesta NO es ok, devolver la data al llamador para que muestre el mensaje
+         // Si la respuesta NO es ok, devolver la data al llamador para que muestre el mensaje. Esto evita: try/catch innecesario en formularios - lógica repetida - errores silenciosos
          if (!response.ok) {
             // Retornamos un objeto con campo ok=false para facilitar el manejo en LoginForm
             return { ok: false, ...data };
@@ -76,23 +81,25 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
    };
 
-   // Si el loading es true, mostrar un indicador de carga
-   if (loading) {
-      return <div>Cargando...</div>;
-   }
+   // El Context NO debería renderizar UI. Mejor se expone el estado en el Provider: El loader se maneja mejor en (App.jsx, PrivateRoute.jsx o Layout principal)
+   // if (loading) {
+   //    return <div>Cargando...</div>;
+   // }
 
    // Proporcionar el contexto, este contexto se proporciona al componente App.jsx que es desde donde se cargan los componentes de la aplicación
    return (
       // Todo lo que se envíe en la propiedad value se puede acceder desde cualquier componente que esté dentro del contexto
       // En este caso se envían los estados user, token y las funciones login y logout
-      <AuthContext.Provider value={{ user, token, login, logout }}>
+      <AuthContext.Provider
+         value={{ user, token, isAuthenticated, loading, login, logout }}
+      >
          {/* children es todo lo que se renderize desde App.jsx*/}
          {children}
       </AuthContext.Provider>
    );
 };
 
-// Hook personalizado para usar el contexto, este hook se encarga de obtener los datos del contexto y devolverlos al componente que lo invoque
+// Hook personalizado para usar el contexto, este hook se encarga de obtener los datos del contexto y devolverlos al componente que lo invoque: Esto evita bugs invisibles.
 export const useAuth = () => {
    // Obtener el contexto definido en AuthProvider
    const context = useContext(AuthContext);
@@ -103,3 +110,48 @@ export const useAuth = () => {
    // Devolver el contexto para ser usado en el componente que lo invoque
    return context;
 };
+
+/* Pendientes
+
+3. Tu login no maneja errores HTTP reales (caso backend caído)
+
+ahora:
+const data = await response.json();
+
+Si el backend responde:
+500 sin body
+
+revienta aquí. Mejor:
+let data = {};
+try {
+   data = await response.json();
+} catch {
+   data = {};
+}
+
+
+4. URL hardcodeada del backend
+
+'http://localhost:3002/api/auth/login'
+
+Esto te va a romper:
+staging
+producción
+docker
+deploy
+
+usar:
+import.meta.env.VITE_API_URL
+
+
+5. Seguridad (muy importante)
+
+Guardar JWT en localStorage:
+localStorage.setItem('token', data.token);
+
+Es vulnerable a XSS.
+
+ideal → httpOnly cookies
+aceptable → localStorage + CSP fuerte
+
+*/

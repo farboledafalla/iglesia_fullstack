@@ -61,3 +61,18 @@ const DashboardRoutes = () => {
 };
 
 export default DashboardRoutes;
+
+/*
+
+2. Separación por rol dentro del router
+
+const isAdmin = user?.rol === 'admin';
+
+Esto está bien para:
+- MVP
+- sistemas pequeños/medianos
+- dashboards internos
+
+Luego lo puedes migrar a RoleRoute si crece.
+
+*/

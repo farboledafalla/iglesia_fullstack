@@ -21,6 +21,8 @@ const modulosRoutes = require('./routes/modulos');
 const leccionesRoutes = require('./routes/lecciones');
 const preguntasRouter = require('./routes/preguntas');
 const progresoAlumnosRouter = require('./routes/progreso-alumnos');
+const coursesRBACRoutes = require('./routes/coursesRBAC'); // Rutas con RBAC
+const roleManagementRoutes = require('./routes/roleManagement'); // Gestión de roles y permisos
 //const instructoresRoutes = require('./routes/instructores');
 
 // Importar función obtenerFechaHoraActual
@@ -44,6 +46,8 @@ app.use('/api/continentes', continentesRoutes);
 app.use('/api/roles', rolesRoutes);
 
 app.use('/api/courses', courseRoutes);
+app.use('/api/courses-rbac', coursesRBACRoutes); // Rutas de ejemplo con RBAC completo
+app.use('/api/role-management', roleManagementRoutes); // Gestión de roles y permisos
 app.use('/api/modulos', modulosRoutes);
 app.use('/api/lecciones', leccionesRoutes);
 app.use('/api/preguntas', preguntasRouter);

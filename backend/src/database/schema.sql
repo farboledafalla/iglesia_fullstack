@@ -6,6 +6,7 @@ USE iglesia;
 CREATE TABLE `roles` (
   `rol_id` int(11) NOT NULL AUTO_INCREMENT,
   `nombre_rol` varchar(50) NOT NULL,
+  `descripcion` varchar(100) DEFAULT NULL,
   `fecha_registro` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`rol_id`),
   UNIQUE KEY `nombre_rol` (`nombre_rol`)
@@ -75,6 +76,56 @@ CREATE TABLE IF NOT EXISTS cursos (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   estado ENUM('ENPROGRESO','COMPLETADO','ARCHIVADO') DEFAULT 'ENPROGRESO'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--ejemplos de cursos
+INSERT INTO cursos (titulo, descripcion, estado) VALUES
+  ('Libro de Genesis', 'Conoce el libro de Genesis.', 'ENPROGRESO'),
+  ('Libro de Exoso', 'Conoce el libro de Exoso.', 'ENPROGRESO'),
+  ('Libro de Deuteronomios', 'Conoce el libro de Deuteronomios.', 'ENPROGRESO');
+
+-- Tabla de permisos
+CREATE TABLE IF NOT EXISTS permisos (
+  permiso_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) UNIQUE NOT NULL,
+  descripcion TEXT
+);
+
+-- Ejemplos de permisos
+INSERT INTO permisos (nombre, descripcion) VALUES
+  ('crear_curso', 'Crear cursos'),
+  ('ver_curso', 'Ver cursos propios'),
+  ('editar_curso', 'Editar cursos propios'),
+  ('eliminar_curso', 'Eliminar cursos propios'),
+  ('calificar_intento', 'Calificar intentos'),
+  ('ver_alumnos', 'Ver lista de alumnos inscritos en cursos propios');
+
+-- Asociar permisos a 'instructor' (obtén role_id del INSERT anterior)
+-- Supongamos role_id = 3
+INSERT INTO roles_permisos (rol_id, permiso_id)
+SELECT r.rol_id, p.permiso_id
+FROM roles r JOIN permisos p ON p.nombre IN ('crear_curso','ver_curso','editar_curso','eliminar_curso','calificar_intento','ver_alumnos')
+WHERE r.nombre_rol='instructor'
+ORDER BY p.permiso_id;
+  
+-- Tabla de relación roles-permisos
+CREATE TABLE IF NOT EXISTS roles_permisos (
+  rol_id INT NOT NULL,
+  permiso_id INT NOT NULL,
+  PRIMARY KEY (rol_id, permiso_id),
+  FOREIGN KEY (rol_id) REFERENCES roles(rol_id),
+  FOREIGN KEY (permiso_id) REFERENCES permisos(permiso_id)
+);
+
+-- Tabla de instructores por curso
+ CREATE TABLE IF NOT EXISTS cursos_instructores (
+  curso_id BIGINT NOT NULL,  -- Cambiado a BIGINT para coincidir
+  usuario_id INT(11) NOT NULL,  -- Cambiado a INT(11) para coincidir
+  rol_en_curso ENUM('instructor','asistente') DEFAULT 'instructor',
+  assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (curso_id, usuario_id),
+  FOREIGN KEY (curso_id) REFERENCES cursos(curso_id) ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
+);
 
 -- Tabla de módulos (pertenecen a un curso)
 CREATE TABLE IF NOT EXISTS modulos (

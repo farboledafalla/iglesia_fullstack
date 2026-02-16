@@ -16,6 +16,9 @@ export const AuthProvider = ({ children }) => {
    // Para que cada componente NO tendría que validar
    const isAuthenticated = !!token;
 
+   // Para la armar el sidebar de navegacion
+   const [navigation, setNavigation] = useState([]);
+
    // Cargar datos de autenticación al iniciar
    useEffect(() => {
       // Cargar datos de localStorage
@@ -30,6 +33,44 @@ export const AuthProvider = ({ children }) => {
       // Establecer loading a false para indicar que la carga ha terminado
       setLoading(false);
    }, []);
+
+   useEffect(() => {
+      if (token) {
+         fetchNavigation(token);
+      }
+   }, [token]);
+
+   // Armar la navegación (sidebar)
+   const fetchNavigation = async (authToken) => {
+      console.log('🔥 fetchNavigation ejecutándose');
+      console.log('Token enviado:', authToken);
+
+      try {
+         const response = await fetch(`${API_URL}/navigation`, {
+            method: 'GET',
+            headers: {
+               'Content-Type': 'application/json',
+               Authorization: `Bearer ${authToken}`,
+            },
+         });
+
+         const data = await response.json();
+
+         if (!response.ok) {
+            console.error('Error obteniendo navegación:', data);
+            return { ok: false, ...data };
+         }
+
+         console.log('📦 Navigation recibida del backend:', data);
+
+         setNavigation(data);
+
+         return { ok: true, data };
+      } catch (error) {
+         console.error('Error en fetchNavigation:', error);
+         throw error;
+      }
+   };
 
    // Función para manejar el login, recibe email y password desde el componente Login para luego enviar al backend
    const login = async (email, password) => {
@@ -57,9 +98,24 @@ export const AuthProvider = ({ children }) => {
          console.log('Data retornada desde el backend: ', data);
          // Guardar en localStorage y actualizar estado
          localStorage.setItem('token', data.token);
-         localStorage.setItem('user', JSON.stringify(data.user));
+         localStorage.setItem(
+            'user',
+            JSON.stringify({
+               ...data.user,
+               roles: [data.user.rol],
+            }),
+         );
          setToken(data.token);
-         setUser(data.user);
+         // setUser(data.user);
+
+         // Para no cambiar por ahora el backend ajustamos el frontend
+         setUser({
+            ...data.user,
+            roles: [data.user.rol], // normalizamos a array
+         });
+
+         // Armando el sidebar (navegacion dinamica)
+         // await fetchNavigation(data.token);
 
          // Retornar la data incluyendo ok=true
          return { ok: true, ...data };
@@ -91,7 +147,15 @@ export const AuthProvider = ({ children }) => {
       // Todo lo que se envíe en la propiedad value se puede acceder desde cualquier componente que esté dentro del contexto
       // En este caso se envían los estados user, token y las funciones login y logout
       <AuthContext.Provider
-         value={{ user, token, isAuthenticated, loading, login, logout }}
+         value={{
+            user,
+            token,
+            isAuthenticated,
+            loading,
+            login,
+            logout,
+            navigation,
+         }}
       >
          {/* children es todo lo que se renderize desde App.jsx*/}
          {children}

@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
       console.log('\n\n------------------------------------------------');
       //Mostrar mensaje en cosola
       console.error(
-         '\nMensaje enviado al FrontEnd: No hay token, permiso no válido'
+         '\nMensaje enviado al FrontEnd: No hay token, permiso no válido',
       );
       return res.status(401).json({ msg: 'No hay token, permiso no válido' });
    }
@@ -26,7 +26,7 @@ module.exports = (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Agregar el usuario al request para que pueda ser usado en cualquier parte del servidor.
-      req.user = decoded.user;
+      req.user = decoded;
 
       // Verificar estado de cuenta en la base de datos
       //En este caso se debe usar req.user.id porque en el payload del token se envía el id del usuario como 'id' y no como 'usuario_id'
@@ -40,12 +40,10 @@ module.exports = (req, res, next) => {
             if (!rows || rows.length === 0)
                return res.status(401).json({ msg: 'Usuario no encontrado' });
             if (rows[0].estado !== 'ACTIVO')
-               return res
-                  .status(403)
-                  .json({
-                     msg: 'Cuenta de usuario no activa',
-                     email: req.user.email,
-                  });
+               return res.status(403).json({
+                  msg: 'Cuenta de usuario no activa',
+                  email: req.user.email,
+               });
             next();
          })
          .catch((err) => {

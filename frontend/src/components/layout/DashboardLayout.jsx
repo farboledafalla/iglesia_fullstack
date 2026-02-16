@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 // Se importa el sidebar y el header
 import Sidebar from './Sidebar';
 import Header from './Header';
+
 // Se importa Outlet para mostrar el contenido de las rutas hijas
 import { Outlet } from 'react-router-dom';
 
@@ -11,6 +12,7 @@ const DashboardLayout = () => {
    // Estado para mostrar el sidebar en móvil
    const [sidebarOpen, setSidebarOpen] = useState(false);
 
+   console.log('DashboardLayout render');
    return (
       <div className='h-screen flex overflow-hidden bg-gray-100'>
          {/* Sidebar para móvil */}

@@ -37,7 +37,7 @@ const authController = {
          // Esta petición retorna un array con los usuarios que coinciden con el email
          const [users] = await pool.query(
             'SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.rol_id = r.rol_id WHERE u.email = ?',
-            [email]
+            [email],
          );
 
          console.log('\n\n------------------------------------------------');
@@ -46,7 +46,7 @@ const authController = {
          console.log(
             'Consulta alumnos:',
             'SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.rol_id = r.rol_id WHERE u.email =',
-            email
+            email,
          );
 
          // Si no hay usuarios con ese email, se devuelve un mensaje de error
@@ -72,7 +72,7 @@ const authController = {
             console.log('/controllers/authController.js');
             console.error(
                'La contraseña no es la correcta para el email',
-               email
+               email,
             );
             return res.status(400).json({
                msg: 'La contraseña no es la correcta para el email',
@@ -82,12 +82,10 @@ const authController = {
 
          // Crear payload para el JWT, esto se puede ver desde el navegador en la pestaña Network > Headers > Request Headers > Authorization
          const payload = {
-            user: {
-               id: user.usuario_id,
-               nombre: user.nombre,
-               email: user.email,
-               rol: user.nombre_rol.toLowerCase(),
-            },
+            id: user.usuario_id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.nombre_rol.toLowerCase(),
          };
 
          // Generar el token
@@ -101,14 +99,9 @@ const authController = {
                // Enviar al FrontEnd tanto el token como la información del usuario
                res.json({
                   token,
-                  user: {
-                     id: user.usuario_id,
-                     nombre: user.nombre,
-                     email: user.email,
-                     rol: user.nombre_rol.toLowerCase(),
-                  },
+                  user: payload,
                });
-            }
+            },
          );
       } catch (err) {
          console.error('Error completo:', err);
@@ -124,7 +117,8 @@ const authController = {
       let connection;
       try {
          // Tomar los datos de entrada
-         const { identificacion, nombre, email, password, telefono, pais_id } = req.body;
+         const { identificacion, nombre, email, password, telefono, pais_id } =
+            req.body;
 
          connection = await pool.getConnection();
 
@@ -138,20 +132,25 @@ const authController = {
             });
 
          // Iniciar transacción en esta conexión
-         await new Promise((resB, rejB) => connection.beginTransaction((err) => (err ? rejB(err) : resB())));
+         await new Promise((resB, rejB) =>
+            connection.beginTransaction((err) => (err ? rejB(err) : resB())),
+         );
 
          // Generar el hash de la contraseña ingresada
          const salt = await bcrypt.genSalt(10);
          const hashedPassword = await bcrypt.hash(password, salt);
 
          // Obtener el rol_id para el rol 'estudiante'
-         const roles = await query('SELECT rol_id FROM roles WHERE nombre_rol = ?', ['estudiante']);
+         const roles = await query(
+            'SELECT rol_id FROM roles WHERE nombre_rol = ?',
+            ['estudiante'],
+         );
          const rol_id = roles[0].rol_id;
 
          // Insertar el usuario
          const result = await query(
             'INSERT INTO usuarios (nombre, email, password_hash, pais_id, rol_id) VALUES (?, ?, ?, ?, ?)',
-            [nombre, email, hashedPassword, pais_id, rol_id]
+            [nombre, email, hashedPassword, pais_id, rol_id],
          );
 
          const usuario_id = result.insertId;
@@ -159,11 +158,13 @@ const authController = {
          // Crear el registro en la tabla alumnos automáticamente
          await query(
             'INSERT INTO alumnos (usuario_id, identificacion, nombre, email, telefono, pais_id) VALUES (?, ?, ?, ?, ?, ?)',
-            [usuario_id, identificacion, nombre, email, telefono, pais_id]
+            [usuario_id, identificacion, nombre, email, telefono, pais_id],
          );
 
          // Confirmar la transacción
-         await new Promise((resC, rejC) => connection.commit((err) => (err ? rejC(err) : resC())));
+         await new Promise((resC, rejC) =>
+            connection.commit((err) => (err ? rejC(err) : resC())),
+         );
 
          // Generar token JWT
          const payload = {
@@ -175,20 +176,31 @@ const authController = {
             },
          };
 
-         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-         });
+         jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' },
+            (err, token) => {
+               if (err) throw err;
+               res.json({ token });
+            },
+         );
       } catch (error) {
          // Rollback si hay conexión iniciada
          try {
-            if (connection) await new Promise((resR, rejR) => connection.rollback((err) => (err ? rejR(err) : resR())));
+            if (connection)
+               await new Promise((resR, rejR) =>
+                  connection.rollback((err) => (err ? rejR(err) : resR())),
+               );
          } catch (rbErr) {
             console.error('Error during rollback:', rbErr);
          }
 
          console.error(error);
-         res.status(500).json({ msg: 'Error en el registro', error: error.message });
+         res.status(500).json({
+            msg: 'Error en el registro',
+            error: error.message,
+         });
       } finally {
          // Liberar la conexión si fue tomada
          if (connection) connection.release();
@@ -204,7 +216,7 @@ const authController = {
          // Consultar el registro del usuario por el email
          const [users] = await pool.query(
             'SELECT usuario_id,email nombre FROM usuarios WHERE email = ?',
-            [email]
+            [email],
          );
 
          // Si no hay usuarios con ese email, se devuelve un mensaje de error
@@ -219,14 +231,14 @@ const authController = {
          const resetToken = jwt.sign(
             { user: { id: user.usuario_id } },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '1h' },
          );
 
          // Guardar el token en la base de datos
          // Se actualiza el registro del usuario con el token de recuperación y la fecha de expiración del token, la fecha de expiración se calcula sumando 1 hora a la fecha actual
          await pool.query(
             'UPDATE usuarios SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE usuario_id = ?',
-            [resetToken, user.usuario_id]
+            [resetToken, user.usuario_id],
          );
 
          // Se envía un email con el link de recuperación
@@ -259,7 +271,7 @@ const authController = {
          // Verificar el token y obtener el usuario
          const [users] = await pool.query(
             'SELECT usuario_id FROM usuarios WHERE reset_token = ? AND reset_token_expires > NOW() AND estado = "ACTIVO"',
-            [token]
+            [token],
          );
 
          if (users.length === 0) {
@@ -275,7 +287,7 @@ const authController = {
          // Actualizar la contraseña y limpiar el token
          await pool.query(
             'UPDATE usuarios SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE usuario_id = ?',
-            [hashedPassword, user.usuario_id]
+            [hashedPassword, user.usuario_id],
          );
 
          res.json({ msg: 'Contraseña actualizada correctamente' });

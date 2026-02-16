@@ -84,20 +84,33 @@ INSERT INTO cursos (titulo, descripcion, estado) VALUES
   ('Libro de Deuteronomios', 'Conoce el libro de Deuteronomios.', 'ENPROGRESO');
 
 -- Tabla de permisos
-CREATE TABLE IF NOT EXISTS permisos (
+/* CREATE TABLE IF NOT EXISTS permisos (
   permiso_id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) UNIQUE NOT NULL,
   descripcion TEXT
+); */
+
+CREATE TABLE permisos (
+    permiso_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    path VARCHAR(100) NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    icon VARCHAR(50),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Ejemplos de permisos
-INSERT INTO permisos (nombre, descripcion) VALUES
-  ('crear_curso', 'Crear cursos'),
-  ('ver_curso', 'Ver cursos propios'),
-  ('editar_curso', 'Editar cursos propios'),
-  ('eliminar_curso', 'Eliminar cursos propios'),
-  ('calificar_intento', 'Calificar intentos'),
-  ('ver_alumnos', 'Ver lista de alumnos inscritos en cursos propios');
+INSERT INTO permisos (name, path,label,icon) VALUES
+  ('admin', 'admin', 'Dashboard','home'),
+  ('usuarios', 'usuarios', 'Usuarios','users'),
+  ('alumnos', 'alumnos', 'Alumnos','graduation'),
+  ('modulos', 'modulos', 'Modulos','list'),
+  ('lecciones', 'lecciones', 'Lecciones','book'),
+  ('preguntas', 'preguntas', 'Preguntas','academic'),
+  ('progreso', 'progreso', 'Progreso','chart'),
+  ('student', 'student', 'Student','home'),
+  ('perfil', 'perfil', 'Perfil','user');
 
 -- Asociar permisos a 'instructor' (obtén role_id del INSERT anterior)
 -- Supongamos role_id = 3
@@ -115,6 +128,31 @@ CREATE TABLE IF NOT EXISTS roles_permisos (
   FOREIGN KEY (rol_id) REFERENCES roles(rol_id),
   FOREIGN KEY (permiso_id) REFERENCES permisos(permiso_id)
 );
+
+INSERT INTO roles_permisos(rol_id,permiso_id) VALUES
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(1,5),
+(1,6),
+(1,7);
+
+
+CREATE TABLE usuarios_roles (
+    usuario_id INT,
+    rol_id INT,
+    PRIMARY KEY (usuario_id, rol_id),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
+    FOREIGN KEY (rol_id) REFERENCES roles(rol_id)
+);
+
+
+INSERT INTO usuarios_roles(usuario_id,rol_id) VALUES
+(4,1);
+
+
+
 
 -- Tabla de instructores por curso
  CREATE TABLE IF NOT EXISTS cursos_instructores (

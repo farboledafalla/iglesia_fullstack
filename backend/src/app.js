@@ -8,6 +8,10 @@ const express = require('express');
 const cors = require('cors');
 
 //Incluir las rutas desde donde se llaman los diferentes controladores
+
+//Se usa para armar el sidebar de navegacion
+const navigationRoutes = require('./routes/navigation');
+
 //Ruta para la conexión a la bd, desde aquí se conecta la bd
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -37,6 +41,10 @@ app.use(cors());
 app.use(express.json());
 
 //Se le pasa la ruta y el controlador que se va a ejecutar
+
+//Navegación para armar el sidebar
+app.use('/api/navigation', navigationRoutes);
+
 //Ruta para la conexión a la bd, desde aquí se conecta la bd
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

@@ -3,7 +3,7 @@
 // Importar React y los hooks necesarios, Navigate permite redireccionar a otra página, useLocation permite obtener la ubicación actual
 import { Navigate, useLocation } from 'react-router-dom';
 // Importar el contexto de autenticación
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = ({ children }) => {
    // Obtener isAuthenticated y loading desde el contexto de autenticación, este fue guardado en los estados del contexto de autenticación (isAuthenticated, loading) desde el componente LoginForm.jsx en la función login (const dataAuthContext = await login(formData.email, formData.password);) y este usó el contexto para almacenar estos datos
